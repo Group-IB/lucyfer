@@ -1,6 +1,6 @@
 from django.utils.decorators import classproperty
 
-from src.fields import DjangoSearchField
+from src.fields.django import DjangoSearchField
 from src.parser import LuceneToDjangoParserMixin
 from src.utils import LuceneSearchError, EXPRESSION_OPERATOR_TO_LOOKUP
 
@@ -8,13 +8,14 @@ from src.utils import LuceneSearchError, EXPRESSION_OPERATOR_TO_LOOKUP
 class BaseSearchSet:
     _field_name_to_search_field_instance = None
     _field_sources = None
+    _field_base_class = None
 
     @classproperty
     def field_name_to_field(cls):
         if cls._field_name_to_search_field_instance is None:
             cls._field_name_to_search_field_instance = {name: _cls
                                                         for name, _cls in cls.__dict__.items()
-                                                        if isinstance(_cls, DjangoSearchField)}
+                                                        if isinstance(_cls, cls._field_base_class)}
 
         return cls._field_name_to_search_field_instance
 
@@ -50,4 +51,4 @@ class BaseSearchSet:
 
 
 class DjangoSearchSet(LuceneToDjangoParserMixin, BaseSearchSet):
-    pass
+    _field_base_class = DjangoSearchField

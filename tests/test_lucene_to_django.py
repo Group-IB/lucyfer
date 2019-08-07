@@ -3,16 +3,16 @@ from unittest import TestCase
 from django.db.models import Q
 from parameterized import parameterized
 
-from src import fields
+from src.fields.django import CharField, FloatField, BooleanField, IntegerField
 from src.searchsets import DjangoSearchSet
 
 
 class UnicornSearchSet(DjangoSearchSet):
-    char_field = fields.CharField()
-    integer_field = fields.IntegerField()
-    float_field = fields.FloatField()
-    boolean_field = fields.BooleanField()
-    field_with_source = fields.CharField(source="ok_it_is_a_source")
+    char_field = CharField()
+    integer_field = IntegerField()
+    float_field = FloatField()
+    boolean_field = BooleanField()
+    field_with_source = CharField(source="ok_it_is_a_source")
 
 
 class TestLuceneToDjangoParsing(TestCase):
