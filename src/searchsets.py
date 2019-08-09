@@ -2,7 +2,7 @@ from django.utils.decorators import classproperty
 
 from src.fields.django import DjangoSearchField
 from src.parser import LuceneToDjangoParserMixin
-from src.utils import LuceneSearchError
+from src.utils import LuceneSearchException
 
 
 class BaseSearchSet:
@@ -28,7 +28,7 @@ class BaseSearchSet:
     @classmethod
     def get_query_for_field(cls, condition):
         if condition.name not in cls.field_name_to_field:
-            raise LuceneSearchError()
+            raise LuceneSearchException()
         return cls.field_name_to_field[condition.name].get_query_by_condition(condition)
 
 

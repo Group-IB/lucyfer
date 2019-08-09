@@ -1,6 +1,10 @@
-class LuceneSearchError(Exception):
+class LuceneSearchException(Exception):
     pass
 
 
-class LuceneSearchCastValueError(LuceneSearchError):
+class LuceneSearchCastValueException(LuceneSearchException):
+    pass
+
+
+class LuceneSearchInvalidValueException(LuceneSearchException):
     pass

@@ -1,8 +1,9 @@
 from django.db.models import Q
 from lucyparser import parse
+from lucyparser.exceptions import BaseLucyException
 from lucyparser.tree import ExpressionNode, AndNode, OrNode, NotNode
 
-from src.utils import LuceneSearchError
+from src.utils import LuceneSearchException
 
 
 class BaseLuceneParserMixin:
@@ -15,8 +16,8 @@ class BaseLuceneParserMixin:
 
         try:
             tree = parse(string=raw_expression)
-        except Exception:
-            raise LuceneSearchError()
+        except BaseLucyException:
+            raise LuceneSearchException()
 
         return cls._parse_tree(tree=tree)
 

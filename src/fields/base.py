@@ -5,5 +5,5 @@ class BaseSearchField:
     def get_source(self, field_name):
         return self.source or field_name
 
-    def get_query(self, field_name, lookup, value):
+    def get_query_by_condition(self, condition):
         raise NotImplementedError()
