@@ -40,7 +40,9 @@ class LuceneToDjangoParserMixin(BaseLuceneParserMixin):
             return (query)
 
         if isinstance(tree, NotNode):
-            # TODO ANN
-            return Q()
+            children_query = Q()
+            for child in tree.children:
+                children_query = children_query & cls._parse_tree(tree=child)
+            return ~Q(children_query)
 
         return Q()
