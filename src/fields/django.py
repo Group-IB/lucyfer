@@ -5,6 +5,13 @@ from src.utils import LuceneSearchCastValueError
 
 
 class DjangoSearchField(BaseSearchField):
+    def get_query_by_condition(self, condition, ):
+        if self.match_all(value=condition.value):
+            return Q()
+
+        return Q(**{"{}__{}".format(self.get_source(condition.name),
+                                    self.get_operator_by_lookup(condition.operator)): self.cast_value(condition.value)})
+
     def get_query(self, field_name, lookup, value):
         if self.match_all(value=value):
             return Q()
@@ -16,6 +23,10 @@ class DjangoSearchField(BaseSearchField):
 
     def cast_value(self, value):
         return value
+
+    def get_operator_by_lookup(self, operator):
+        # TODO ANN
+        return None
 
 
 class CharField(DjangoSearchField):
