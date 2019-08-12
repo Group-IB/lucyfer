@@ -9,5 +9,5 @@ class BaseSearchField:
     def get_sources(self, field_name):
         return self.sources or [field_name]
 
-    def get_query_by_condition(self, condition):
+    def get_query(self, condition):
         raise NotImplementedError()

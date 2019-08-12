@@ -2,13 +2,13 @@ from django.db.models import Q
 from lucyparser.tree import Operator
 
 from src.base.fields import BaseSearchField
-from src.utils import LuceneSearchCastValueException
+from src.utils import LuceneSearchCastValueException, LuceneSearchInvalidValueException
 
 
 class DjangoSearchField(BaseSearchField):
     OPERATOR_TO_LOOKUP = dict()
 
-    def get_query_by_condition(self, condition):
+    def get_query(self, condition):
         if self.match_all(value=condition.value):
             return Q()
 
@@ -32,8 +32,7 @@ class DjangoSearchField(BaseSearchField):
         lookup = self.OPERATOR_TO_LOOKUP.get(operator)
 
         if lookup is None:
-            # TODO ANN norm exceptions
-            raise Exception()
+            raise LuceneSearchInvalidValueException()
 
         return lookup
 
@@ -43,7 +42,7 @@ class CharField(DjangoSearchField):
         Operator.EQ: "icontains",
     }
 
-    def get_query_by_condition(self, condition):
+    def get_query(self, condition):
         if self.match_all(value=condition.value):
             return Q()
 

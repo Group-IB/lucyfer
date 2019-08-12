@@ -1,6 +1,4 @@
-from django.utils.decorators import classproperty
-
-from src.utils import LuceneSearchException
+from src.utils import LuceneSearchException, classproperty
 
 
 class BaseSearchSet:
@@ -31,4 +29,4 @@ class BaseSearchSet:
     def get_query_for_field(cls, condition):
         if condition.name not in cls.field_name_to_field:
             raise LuceneSearchException()
-        return cls.field_name_to_field[condition.name].get_query_by_condition(condition)
+        return cls.field_name_to_field[condition.name].get_query(condition)
