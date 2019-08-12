@@ -65,9 +65,6 @@ class CharField(DjangoSearchField):
 
         return final_query
 
-    def cast_value(self, value):
-        return value.strip().strip('\"').strip("\'")
-
 
 class NumberField(DjangoSearchField):
     OPERATOR_TO_LOOKUP = {
