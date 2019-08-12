@@ -1,7 +1,7 @@
 from django.db.models import Q
 from lucyparser.tree import Operator
 
-from src.fields.base import BaseSearchField
+from src.base.fields import BaseSearchField
 from src.utils import LuceneSearchCastValueException
 
 
