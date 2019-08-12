@@ -12,8 +12,15 @@ class DjangoSearchField(BaseSearchField):
         if self.match_all(value=condition.value):
             return Q()
 
-        return Q(**{"{}__{}".format(self.get_source(condition.name),
-                                    self.get_operator_by_lookup(condition.operator)): self.cast_value(condition.value)})
+        return self.create_query_for_sources(condition=condition)
+
+    def create_query_for_sources(self, condition):
+        query = Q()
+        for source in self.get_sources(condition.name):
+            query = query | Q(**{"{}__{}".format(
+                source,
+                self.get_operator_by_lookup(condition.operator)): self.cast_value(condition.value)})
+        return query
 
     def match_all(self, value):
         return value == "*"
@@ -40,30 +47,38 @@ class CharField(DjangoSearchField):
         if self.match_all(value=condition.value):
             return Q()
 
-        source = self.get_source(condition.name)
         wildcard_parts = self.cast_value(condition.value).split("*")
 
         parts_count = len(wildcard_parts)
 
         if parts_count == 1:
-            return Q(**{"{}__{}".format(source, self.get_operator_by_lookup(condition.operator)): wildcard_parts[0]})
+            return self.create_query_for_sources(condition)
 
-        query = Q()
+        source_to_query = {source: Q() for source in self.get_sources(condition.name)}
+
+        def update_query(lookup, value):
+            for source in source_to_query:
+                source_to_query[source] = source_to_query[source] & Q(**{"{}__{}".format(source, lookup): value})
+
         for index, w_part in enumerate(wildcard_parts):
             if w_part:
                 if index == 0:
-                    query = query & Q(**{"{}__{}".format(source, "istartswith"): w_part})
+                    update_query(lookup="istartswith", value=w_part)
                     continue
 
                 elif index == (parts_count - 1):
-                    query = query & Q(**{"{}__{}".format(source, "iendswith"): w_part})
+                    update_query(lookup="iendswith", value=w_part)
                     continue
 
                 else:
-                    query = query & Q(**{"{}__{}".format(source, "icontains"): w_part})
+                    update_query(lookup="icontains", value=w_part)
                     continue
 
-        return query
+        final_query = Q()
+        for query in source_to_query.values():
+            final_query = final_query & query
+
+        return final_query
 
     def cast_value(self, value):
         return value.strip().strip('\"').strip("\'")

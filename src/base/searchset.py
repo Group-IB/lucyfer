@@ -20,7 +20,11 @@ class BaseSearchSet:
     @classproperty
     def field_sources(cls):
         if cls._field_sources is None:
-            cls._field_sources = [_cls.get_source(name) for name, _cls in cls.field_name_to_field.items()]
+            cls._field_sources = []
+
+            for name, _cls in cls.field_name_to_field.items():
+                cls._field_sources.extend(_cls.get_sources(name))
+
         return cls._field_sources
 
     @classmethod
