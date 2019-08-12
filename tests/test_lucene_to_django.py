@@ -13,6 +13,8 @@ class UnicornSearchSet(DjangoSearchSet):
     float_field = FloatField()
     boolean_field = BooleanField()
     field_with_source = CharField(source="ok_it_is_a_source")
+    field_with_several_sources = CharField(sources=["source1", "source2"])
+    field_with_several_sources_and_source = CharField(source="separated_source", sources=["source1", "source2"])
 
 
 class TestLuceneToDjangoParsing(TestCase):
@@ -90,12 +92,17 @@ class TestLuceneToDjangoParsing(TestCase):
     def test_rules_with_and_expression(self, expected_query, raw_expressions):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
 
-    @parameterized.expand(
-        ((Q(char_field__icontains="aaa_aaa"), ["((((char_field: aaa_aaa))))", "((char_field: aaa_aaa))", ]),
+    @parameterized.expand((
+            (Q(char_field__icontains="aaa_aaa"), ["((((char_field: aaa_aaa))))", "((char_field: aaa_aaa))", ]),
          ))
     def test_several_dashes_rules(self, expected_query, raw_expressions):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
 
-    @parameterized.expand(((Q(ok_it_is_a_source__icontains="xxx"), ["field_with_source: xxx"]), ))
+    @parameterized.expand((
+            (Q(ok_it_is_a_source__icontains="xxx"), ["field_with_source: xxx"]),
+            (Q(source2__icontains="xxx") | Q(source1__icontains="xxx"), ["field_with_several_sources: xxx"]),
+            (Q(separated_source__icontains="xxx") | Q(source2__icontains="xxx") | Q(source1__icontains="xxx"),
+             ["field_with_several_sources_and_source: xxx"]),
+    ))
     def test_rule_with_source(self, expected_query, raw_expressions):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
