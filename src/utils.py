@@ -1,13 +1,10 @@
-EXPRESSION_OPERATOR_TO_LOOKUP = {">=": "gte",
-                                 "<=": "lte",
-                                 "<": "lt",
-                                 ">": "gt",
-                                 ":": "iexact"}
-
-
-class LuceneSearchError(Exception):
+class LuceneSearchException(Exception):
     pass
 
 
-class LuceneSearchCastValueError(LuceneSearchError):
+class LuceneSearchCastValueException(LuceneSearchException):
+    pass
+
+
+class LuceneSearchInvalidValueException(LuceneSearchException):
     pass

@@ -1,6 +1,6 @@
 Django==2.2.4
 djangorestframework==3.10.2
-mpmath==1.1.0
+lucyparser==0.1.0
+pkg-resources==0.0.0
 pytz==2019.2
 sqlparse==0.3.0
-sympy==1.4

@@ -1,7 +1,7 @@
 from rest_framework.compat import distinct
 from rest_framework.filters import SearchFilter
 
-from src.utils import LuceneSearchError
+from src.utils import LuceneSearchException
 
 
 class LuceneSearchFilter(SearchFilter):
@@ -23,7 +23,7 @@ class LuceneSearchFilter(SearchFilter):
             try:
                 query = searchset_class.parse(raw_expression=search_terms)
                 return queryset.filter(query)
-            except LuceneSearchError:
+            except LuceneSearchException:
                 return None
         return None
 
