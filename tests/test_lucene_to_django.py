@@ -3,8 +3,8 @@ from unittest import TestCase
 from django.db.models import Q
 from parameterized import parameterized
 
-from src.fields.django import CharField, FloatField, BooleanField, IntegerField
-from src.searchsets import DjangoSearchSet
+from src.django.fields import CharField, FloatField, BooleanField, IntegerField
+from src.django.searchset import DjangoSearchSet
 
 
 class UnicornSearchSet(DjangoSearchSet):
