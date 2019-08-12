@@ -2,12 +2,10 @@ from django.db.models import Q
 from lucyparser.tree import Operator
 
 from src.base.fields import BaseSearchField
-from src.utils import LuceneSearchCastValueException, LuceneSearchInvalidValueException
+from src.utils import LuceneSearchCastValueException
 
 
 class DjangoSearchField(BaseSearchField):
-    OPERATOR_TO_LOOKUP = dict()
-
     def get_query(self, condition):
         if self.match_all(value=condition.value):
             return Q()
@@ -16,25 +14,13 @@ class DjangoSearchField(BaseSearchField):
 
     def create_query_for_sources(self, condition):
         query = Q()
+
+        lookup = self.get_lookup(condition.operator)
+        value = self.cast_value(condition.value)
+
         for source in self.get_sources(condition.name):
-            query = query | Q(**{"{}__{}".format(
-                source,
-                self.get_operator_by_lookup(condition.operator)): self.cast_value(condition.value)})
+            query = query | Q(**{"{}__{}".format(source, lookup): value})
         return query
-
-    def match_all(self, value):
-        return value == "*"
-
-    def cast_value(self, value):
-        return value
-
-    def get_operator_by_lookup(self, operator):
-        lookup = self.OPERATOR_TO_LOOKUP.get(operator)
-
-        if lookup is None:
-            raise LuceneSearchInvalidValueException()
-
-        return lookup
 
 
 class CharField(DjangoSearchField):

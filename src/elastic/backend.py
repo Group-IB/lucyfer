@@ -1,7 +1,9 @@
+from rest_framework_elasticsearch.es_filters import BaseEsFilterBackend
+
 from src.utils import LuceneSearchException
 
 
-class ElasticLuceneSearchFilterMixin:
+class ElasticLuceneSearchFilterMixin(BaseEsFilterBackend):
     def lucene_filter_search(self, searchset_class, search_terms, search):
         if searchset_class is not None:
             try:

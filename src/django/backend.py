@@ -1,9 +1,10 @@
 from rest_framework.compat import distinct
+from rest_framework.filters import SearchFilter
 
 from src.utils import LuceneSearchException
 
 
-class DjangoLuceneSearchFilterMixin:
+class DjangoLuceneSearchFilterMixin(SearchFilter):
     def lucene_filter_queyset(self, searchset_class, search_terms, queryset):
         if searchset_class is not None:
             try:

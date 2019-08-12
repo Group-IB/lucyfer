@@ -1,7 +1,4 @@
-from rest_framework.filters import SearchFilter
-
-
-class LuceneSearchFilter(SearchFilter):
+class LuceneSearchFilter:
     def get_searchset_class(self, view, request):
         """
         Returns searchset class if it presented in view
