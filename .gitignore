@@ -10,3 +10,4 @@
 env/
 venv/
 .pytest_cache
+requirements/debug.txt

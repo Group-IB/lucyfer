@@ -1,3 +1,5 @@
+from lucyparser.tree import Operator
+
 from src.utils import LuceneSearchInvalidValueException
 
 
@@ -31,3 +33,12 @@ class BaseSearchField:
 
     def match_all(self, value):
         return value == "*"
+
+
+def negate_query_if_necessary(func):
+    def wrapper(self, condition):
+        query = func(self, condition)
+        if condition.operator == Operator.NEQ:
+            query = query.__invert__()
+        return query
+    return wrapper
