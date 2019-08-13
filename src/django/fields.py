@@ -1,11 +1,12 @@
 from django.db.models import Q
 from lucyparser.tree import Operator
 
-from src.base.fields import BaseSearchField
+from src.base.fields import BaseSearchField, negate_query_if_necessary
 from src.utils import LuceneSearchCastValueException
 
 
 class DjangoSearchField(BaseSearchField):
+    @negate_query_if_necessary
     def get_query(self, condition):
         if self.match_all(value=condition.value):
             return Q()
@@ -26,18 +27,16 @@ class DjangoSearchField(BaseSearchField):
 class CharField(DjangoSearchField):
     OPERATOR_TO_LOOKUP = {
         Operator.EQ: "icontains",
+        Operator.NEQ: "iexact",
     }
 
-    def get_query(self, condition):
-        if self.match_all(value=condition.value):
-            return Q()
-
+    def create_query_for_sources(self, condition):
         wildcard_parts = self.cast_value(condition.value).split("*")
 
         parts_count = len(wildcard_parts)
 
         if parts_count == 1:
-            return self.create_query_for_sources(condition)
+            return super().create_query_for_sources(condition)
 
         source_to_query = {source: Q() for source in self.get_sources(condition.name)}
 
@@ -73,6 +72,7 @@ class NumberField(DjangoSearchField):
         Operator.GT: "gt",
         Operator.LT: "lt",
         Operator.EQ: "exact",
+        Operator.NEQ: "exact",
     }
 
 
@@ -95,6 +95,7 @@ class FloatField(NumberField):
 class BooleanField(DjangoSearchField):
     OPERATOR_TO_LOOKUP = {
         Operator.EQ: "exact",
+        Operator.NEQ: "exact",
     }
 
     _values = {"true": True, "false": False}

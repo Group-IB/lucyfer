@@ -11,13 +11,13 @@ class ElasticSearchField(BaseSearchField):
         Operator.NEQ: "term",
     }
 
+    @negate_query_if_necessary
     def get_query(self, condition):
         if self.match_all(value=condition.value):
             return Q()
 
         return self.create_query_for_sources(condition=condition)
 
-    @negate_query_if_necessary
     def create_query_for_sources(self, condition):
         query = None  # if set Q() as default it will be MatchAll() anytime
 
