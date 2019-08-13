@@ -1,10 +1,9 @@
-from unittest import TestCase
-
 from django.db.models import Q
 from parameterized import parameterized
 
 from src.django.fields import CharField, FloatField, BooleanField, IntegerField
 from src.django.searchset import DjangoSearchSet
+from tests.base import TestParsing
 
 
 class UnicornSearchSet(DjangoSearchSet):
@@ -17,13 +16,13 @@ class UnicornSearchSet(DjangoSearchSet):
     field_with_several_sources_and_source = CharField(source="separated_source", sources=["source1", "source2"])
 
 
-class TestLuceneToDjangoParsing(TestCase):
-    def _check_rule(self, rule, expected_query):
-        self.assertEqual(expected_query, UnicornSearchSet.parse(raw_expression=rule))
+class TestLuceneToDjangoParsing(TestParsing):
+    searchset_class = UnicornSearchSet
 
-    def _check_rules(self, rules, expected_query):
-        for rule in rules:
-            self._check_rule(rule=rule, expected_query=expected_query)
+    def assertQueriesEqual(self, q1, q2):
+        assert q1.__class__ == q2.__class__
+        assert (q1.connector, q1.negated) == (q2.connector, q2.negated)
+        assert sorted(q1.children) == sorted(q2.children)
 
     @parameterized.expand(((Q(boolean_field__exact=True),
                             ["boolean_field: true", "boolean_field:TRUE", "boolean_field: tRuE"]),
@@ -105,4 +104,13 @@ class TestLuceneToDjangoParsing(TestCase):
              ["field_with_several_sources_and_source: xxx"]),
     ))
     def test_rule_with_source(self, expected_query, raw_expressions):
+        self._check_rules(rules=raw_expressions, expected_query=expected_query)
+
+    @parameterized.expand((
+            (~Q(char_field__iexact="value"), ["char_field!= value", "char_field != value"]),
+            (~Q(integer_field__exact=1), ["integer_field != 1"]),
+            (~Q(float_field__exact=0.5), ["float_field != 0.5"]),
+            (~Q(boolean_field__exact=True), ["boolean_field != true"]),
+    ))
+    def test_negate_values(self, expected_query, raw_expressions):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
