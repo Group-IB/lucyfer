@@ -24,6 +24,6 @@ class ElasticLuceneSearchFilterMixin(BaseEsFilterBackend):
                                                     search=search)
 
         if filtered_search is None:
-            filtered_search = search.extra(size=0)
+            return search.filter('query_string', **{'query': search_terms})
 
         return filtered_search
