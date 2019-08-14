@@ -1,4 +1,4 @@
-from src.utils import LuceneSearchException, classproperty
+from src.utils import classproperty
 
 
 class BaseSearchSet:
@@ -27,6 +27,4 @@ class BaseSearchSet:
 
     @classmethod
     def get_query_for_field(cls, condition):
-        if condition.name not in cls.field_name_to_field:
-            raise LuceneSearchException()
-        return cls.field_name_to_field[condition.name].get_query(condition)
+        return cls.field_name_to_field.get(condition.name, cls._field_base_class()).get_query(condition)

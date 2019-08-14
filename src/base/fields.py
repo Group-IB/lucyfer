@@ -1,10 +1,9 @@
 from lucyparser.tree import Operator
 
-from src.utils import LuceneSearchInvalidValueException
-
 
 class BaseSearchField:
     OPERATOR_TO_LOOKUP = dict()
+    DEFAULT_LOOKUP = None
 
     def __init__(self, source=None, sources=None, *args, **kwargs):
         sources = list() if sources is None else sources
@@ -18,12 +17,7 @@ class BaseSearchField:
         return value
 
     def get_lookup(self, operator):
-        lookup = self.OPERATOR_TO_LOOKUP.get(operator)
-
-        if lookup is None:
-            raise LuceneSearchInvalidValueException()
-
-        return lookup
+        return self.OPERATOR_TO_LOOKUP.get(operator, self.DEFAULT_LOOKUP)
 
     def get_sources(self, field_name):
         return self.sources or [field_name]
