@@ -103,3 +103,16 @@ class TestLuceneToDjangoParsing(TestParsing):
     ))
     def test_null_boolean_values(self, expected_query, raw_expressions):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
+
+    @parameterized.expand((
+            (
+                    Q("match", **{"boolean_field": True}) | Q("term", **{"undefined_field": "ululu"}),
+                    ["boolean_field : true OR undefined_field: ululu"]
+            ),
+            (
+                    Q("term", **{"undefined_field": "ululu"}),
+                    ["undefined_field: ululu"]
+            ),
+    ))
+    def test_negate_values(self, expected_query, raw_expressions):
+        self._check_rules(rules=raw_expressions, expected_query=expected_query)
