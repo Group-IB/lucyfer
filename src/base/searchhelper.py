@@ -2,6 +2,7 @@ class SearchHelperMixin:
     fields_to_exclude_from_mapping = None
 
     _mapping = None
+    _raw_mapping = None
 
     @classmethod
     def exclude_mapping_fields(cls, mapping):
@@ -30,9 +31,15 @@ class SearchHelperMixin:
             all_sources.append(field_name)
             all_sources.extend(field.sources)
 
-        all_sources.extend(cls._get_raw_mapping())
+        all_sources.extend(cls.get_raw_mapping())
 
         return list(set(all_sources))
+
+    @classmethod
+    def get_raw_mapping(cls):
+        if cls._raw_mapping is None:
+            cls._raw_mapping = cls._get_raw_mapping()
+        return cls._raw_mapping
 
     @classmethod
     def _get_raw_mapping(cls):
