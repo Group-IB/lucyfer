@@ -30,7 +30,7 @@ class DjangoLuceneSearchFilterMixin(SearchFilter):
         if filtered_queryset is None:
             queryset = super().filter_queryset(request=request, queryset=queryset, view=view)
         else:
-            if self.must_call_distinct(queryset, searchset_class.field_sources):
+            if self.must_call_distinct(queryset, searchset_class.get_fields_sources()):
                 queryset = distinct(filtered_queryset, queryset)
             else:
                 queryset = filtered_queryset

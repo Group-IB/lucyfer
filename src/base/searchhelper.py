@@ -1,33 +1,39 @@
-from django.utils.decorators import classproperty
-
-
 class SearchHelperMixin:
-    fields_to_exclude = []
+    fields_to_exclude_from_mapping = None
 
-    _full_fields_to_exclude = None
     _mapping = None
 
     @classmethod
     def exclude_mapping_fields(cls, mapping):
-        return list(set(mapping) - set(cls.full_fields_to_exclude))
+        if cls.fields_to_exclude_from_mapping is not None:
+            fields_to_exclude_from_mapping = cls.fields_to_exclude_from_mapping
+        else:
+            fields_to_exclude_from_mapping = list()
 
-    @classproperty
-    def full_fields_to_exclude(cls):
-        if cls._full_fields_to_exclude is None:
-            cls._full_fields_to_exclude = cls.fields_to_exclude
+        for field in cls.get_field_name_to_field().values():
+            if field.exclude_sources_from_mapping:
+                fields_to_exclude_from_mapping.extend(field.sources)
 
-            for name, _cls in cls.field_name_to_field.items():
-                if _cls.exclude_sources_from_mapping:
-                    cls._full_fields_to_exclude.extend(_cls.get_sources(name))
-
-        return cls._full_fields_to_exclude
+        return list(set(mapping) - set(fields_to_exclude_from_mapping))
 
     @classmethod
     def get_mapping(cls):
         if cls._mapping is None:
-            cls._mapping = cls.exclude_mapping_fields(cls._get_mapping())
+            cls._mapping = sorted(cls.exclude_mapping_fields(cls._get_mapping()))
         return cls._mapping
 
     @classmethod
     def _get_mapping(cls):
+        all_sources = []
+
+        for field_name, field in cls.get_field_name_to_field().items():
+            all_sources.append(field_name)
+            all_sources.extend(field.sources)
+
+        all_sources.extend(cls._get_raw_mapping())
+
+        return list(set(all_sources))
+
+    @classmethod
+    def _get_raw_mapping(cls):
         raise NotImplementedError()
