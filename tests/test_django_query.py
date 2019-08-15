@@ -107,10 +107,10 @@ class TestLuceneToDjangoParsing(TestParsing):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
 
     @parameterized.expand((
-            (~Q(char_field__iexact="value"), ["char_field!= value", "char_field != value"]),
-            (~Q(integer_field__exact=1), ["integer_field != 1"]),
-            (~Q(float_field__exact=0.5), ["float_field != 0.5"]),
-            (~Q(boolean_field__exact=True), ["boolean_field != true"]),
+            (~Q(char_field__iexact="value"), ["char_field!= value", "char_field ! value"]),
+            (~Q(integer_field__exact=1), ["integer_field ! 1"]),
+            (~Q(float_field__exact=0.5), ["float_field ! 0.5"]),
+            (~Q(boolean_field__exact=True), ["boolean_field ! true"]),
     ))
     def test_negate_values(self, expected_query, raw_expressions):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)

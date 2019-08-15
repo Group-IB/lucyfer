@@ -64,12 +64,12 @@ class TestLuceneToDjangoParsing(TestParsing):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
 
     @parameterized.expand((
-            (~Q("term", **{"field": "value"}), ["field!= value", "field != value"]),
-            (~Q("match", **{"range_or_match": "value"}), ["range_or_match != value"]),
-            (~Q("match", **{"int_field": 1}), ["int_field != 1"]),
-            (~Q("match", **{"float_field": 1.5}), ["float_field != 1.5"]),
-            (~Q("match", **{"boolean_field": True}), ["boolean_field != true"]),
-            (~Q("match", **{"null_boolean_field": True}), ["null_boolean_field != true"]),
+            (~Q("term", **{"field": "value"}), ["field! value", "field ! value"]),
+            (~Q("match", **{"range_or_match": "value"}), ["range_or_match ! value"]),
+            (~Q("match", **{"int_field": 1}), ["int_field ! 1"]),
+            (~Q("match", **{"float_field": 1.5}), ["float_field ! 1.5"]),
+            (~Q("match", **{"boolean_field": True}), ["boolean_field ! true"]),
+            (~Q("match", **{"null_boolean_field": True}), ["null_boolean_field ! true"]),
     ))
     def test_negate_values(self, expected_query, raw_expressions):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
