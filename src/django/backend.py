@@ -5,14 +5,6 @@ from src.utils import LuceneSearchException
 
 
 class DjangoLuceneSearchFilterMixin(SearchFilter):
-    def lucene_filter_queyset(self, searchset_class, search_terms, queryset):
-        if searchset_class is not None:
-            try:
-                return searchset_class.filter(queryset, search_terms)
-            except LuceneSearchException:
-                return None
-        return None
-
     def filter_queryset(self, request, queryset, view):
         search_terms = self.get_base_search_terms(request)
 
@@ -36,3 +28,11 @@ class DjangoLuceneSearchFilterMixin(SearchFilter):
                 queryset = filtered_queryset
 
         return queryset
+
+    def lucene_filter_queyset(self, searchset_class, search_terms, queryset):
+        if searchset_class is not None:
+            try:
+                return searchset_class.filter(queryset, search_terms)
+            except LuceneSearchException:
+                return None
+        return None

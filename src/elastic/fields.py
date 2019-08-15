@@ -6,19 +6,12 @@ from src.utils import LuceneSearchCastValueException
 
 
 class ElasticSearchField(BaseSearchField):
+    DEFAULT_LOOKUP = "term"
+
     OPERATOR_TO_LOOKUP = {
         Operator.EQ: "term",
         Operator.NEQ: "term",
     }
-
-    DEFAULT_LOOKUP = "term"
-
-    @negate_query_if_necessary
-    def get_query(self, condition):
-        if self.match_all(value=condition.value):
-            return Q("match", **{condition.name: condition.value})
-
-        return self.create_query_for_sources(condition=condition)
 
     def create_query_for_sources(self, condition):
         query = None  # if set Q() as default it will be MatchAll() anytime
@@ -26,15 +19,19 @@ class ElasticSearchField(BaseSearchField):
         lookup = self.get_lookup(condition.operator)
         value = self.cast_value(condition.value)
 
-        print(lookup, value, condition.name)
-
         for source in self.get_sources(condition.name):
             if query is None:
                 query = Q(lookup, **{source: value})
             else:
                 query = query | Q(lookup, **{source: value})
-        print(query)
         return query
+
+    @negate_query_if_necessary
+    def get_query(self, condition):
+        if self.match_all(value=condition.value):
+            return Q("match", **{condition.name: condition.value})
+
+        return self.create_query_for_sources(condition=condition)
 
 
 class RangeOrMatchField(ElasticSearchField):

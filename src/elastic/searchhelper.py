@@ -3,6 +3,17 @@ from src.base.searchhelper import SearchHelperMixin
 
 class ElasticSearchHelperMixin(SearchHelperMixin):
     @classmethod
+    def _format_mapping_values(cls, mapping, prefix=""):
+        keys = []
+
+        for key, value in mapping.items():
+            keys.append(prefix + key)
+            if "properties" in value:
+                keys.extend(cls._format_mapping_values(value["properties"], "".join([prefix, key, "."])))
+
+        return keys
+
+    @classmethod
     def _get_raw_mapping(cls):
         model_instance = cls.Meta.model()
         mapping = model_instance.get_es_client().indices.get_mapping(index=model_instance._get_index())
@@ -15,16 +26,5 @@ class ElasticSearchHelperMixin(SearchHelperMixin):
         except KeyError:
             return []
 
-        keys = cls.format_mapping_values(mapping)
-        return keys
-
-    @classmethod
-    def format_mapping_values(cls, mapping, prefix=""):
-        keys = []
-
-        for key, value in mapping.items():
-            keys.append(prefix + key)
-            if "properties" in value:
-                keys.extend(cls.format_mapping_values(value["properties"], "".join([prefix, key, "."])))
-
+        keys = cls._format_mapping_values(mapping)
         return keys

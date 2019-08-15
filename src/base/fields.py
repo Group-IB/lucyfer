@@ -2,8 +2,8 @@ from lucyparser.tree import Operator
 
 
 class BaseSearchField:
-    OPERATOR_TO_LOOKUP = dict()
     DEFAULT_LOOKUP = None
+    OPERATOR_TO_LOOKUP = dict()
 
     def __init__(self, sources=None, exclude_sources_from_mapping=False, *args, **kwargs):
         sources = list() if sources is None else sources

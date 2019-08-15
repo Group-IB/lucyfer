@@ -1,7 +1,7 @@
 class BaseSearchSet:
+    _field_base_class = None
     _field_name_to_search_field_instance = None
     _field_sources = None
-    _field_base_class = None
 
     @classmethod
     def get_field_name_to_field(cls):

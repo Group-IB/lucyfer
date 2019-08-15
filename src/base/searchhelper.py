@@ -24,6 +24,12 @@ class SearchHelperMixin:
         return cls._mapping
 
     @classmethod
+    def get_raw_mapping(cls):
+        if cls._raw_mapping is None:
+            cls._raw_mapping = cls._get_raw_mapping()
+        return cls._raw_mapping
+
+    @classmethod
     def _get_mapping(cls):
         all_sources = []
 
@@ -34,12 +40,6 @@ class SearchHelperMixin:
         all_sources.extend(cls.get_raw_mapping())
 
         return list(set(all_sources))
-
-    @classmethod
-    def get_raw_mapping(cls):
-        if cls._raw_mapping is None:
-            cls._raw_mapping = cls._get_raw_mapping()
-        return cls._raw_mapping
 
     @classmethod
     def _get_raw_mapping(cls):

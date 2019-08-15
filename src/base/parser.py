@@ -6,10 +6,6 @@ from src.utils import LuceneSearchException
 
 class BaseLuceneParserMixin:
     @classmethod
-    def _parse_tree(cls, tree):
-        raise NotImplementedError()
-
-    @classmethod
     def parse(cls, raw_expression):
 
         try:
@@ -18,3 +14,7 @@ class BaseLuceneParserMixin:
             raise LuceneSearchException()
 
         return cls._parse_tree(tree=tree)
+
+    @classmethod
+    def _parse_tree(cls, tree):
+        raise NotImplementedError()

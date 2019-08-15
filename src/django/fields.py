@@ -8,13 +8,6 @@ from src.utils import LuceneSearchCastValueException
 class DjangoSearchField(BaseSearchField):
     DEFAULT_LOOKUP = "iexact"
 
-    @negate_query_if_necessary
-    def get_query(self, condition):
-        if self.match_all(value=condition.value):
-            return Q()
-
-        return self.create_query_for_sources(condition=condition)
-
     def create_query_for_sources(self, condition):
         query = Q()
 
@@ -24,6 +17,13 @@ class DjangoSearchField(BaseSearchField):
         for source in self.get_sources(condition.name):
             query = query | Q(**{"{}__{}".format(source, lookup): value})
         return query
+
+    @negate_query_if_necessary
+    def get_query(self, condition):
+        if self.match_all(value=condition.value):
+            return Q()
+
+        return self.create_query_for_sources(condition=condition)
 
 
 class CharField(DjangoSearchField):

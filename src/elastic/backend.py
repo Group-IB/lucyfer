@@ -4,14 +4,6 @@ from src.utils import LuceneSearchException
 
 
 class ElasticLuceneSearchFilterMixin(BaseEsFilterBackend):
-    def lucene_filter_search(self, searchset_class, search_terms, search):
-        if searchset_class is not None:
-            try:
-                return searchset_class.filter(search, search_terms)
-            except LuceneSearchException:
-                return None
-        return None
-
     def filter_search(self, request, search, view):
         search_terms = self.get_base_search_terms(request)
 
@@ -27,3 +19,11 @@ class ElasticLuceneSearchFilterMixin(BaseEsFilterBackend):
             return search.filter('query_string', **{'query': search_terms})
 
         return filtered_search
+
+    def lucene_filter_search(self, searchset_class, search_terms, search):
+        if searchset_class is not None:
+            try:
+                return searchset_class.filter(search, search_terms)
+            except LuceneSearchException:
+                return None
+        return None
