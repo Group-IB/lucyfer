@@ -5,13 +5,11 @@ class BaseSearchField:
     OPERATOR_TO_LOOKUP = dict()
     DEFAULT_LOOKUP = None
 
-    def __init__(self, source=None, sources=None, *args, **kwargs):
+    def __init__(self, sources=None, exclude_sources_from_mapping=False, *args, **kwargs):
         sources = list() if sources is None else sources
-
-        if source is not None:
-            sources.append(source)
-
         self.sources = set(sources)
+
+        self.exclude_sources_from_mapping = exclude_sources_from_mapping
 
     def cast_value(self, value):
         return value
