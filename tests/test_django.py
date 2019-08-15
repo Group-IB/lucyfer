@@ -1,7 +1,10 @@
+from unittest import TestCase
+
 from django.db.models import Q
 from parameterized import parameterized
 
 from src.django.fields import CharField, FloatField, BooleanField, IntegerField
+from src.django.searchhelper import DjangoSearchHelperMixin
 from src.django.searchset import DjangoSearchSet
 from tests.base import TestParsing
 
@@ -11,9 +14,8 @@ class UnicornSearchSet(DjangoSearchSet):
     integer_field = IntegerField()
     float_field = FloatField()
     boolean_field = BooleanField()
-    field_with_source = CharField(source="ok_it_is_a_source")
+    field_with_source = CharField(sources=["ok_it_is_a_source"])
     field_with_several_sources = CharField(sources=["source1", "source2"])
-    field_with_several_sources_and_source = CharField(source="separated_source", sources=["source1", "source2"])
 
 
 class TestLuceneToDjangoParsing(TestParsing):
@@ -100,8 +102,6 @@ class TestLuceneToDjangoParsing(TestParsing):
     @parameterized.expand((
             (Q(ok_it_is_a_source__icontains="xxx"), ["field_with_source: xxx"]),
             (Q(source2__icontains="xxx") | Q(source1__icontains="xxx"), ["field_with_several_sources: xxx"]),
-            (Q(separated_source__icontains="xxx") | Q(source2__icontains="xxx") | Q(source1__icontains="xxx"),
-             ["field_with_several_sources_and_source: xxx"]),
     ))
     def test_rule_with_source(self, expected_query, raw_expressions):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
@@ -127,3 +127,43 @@ class TestLuceneToDjangoParsing(TestParsing):
     ))
     def test_negate_values(self, expected_query, raw_expressions):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
+
+
+class TestMapping(TestCase):
+    def test_not_excluding_any_fields(self):
+        class NotExcludingFieldsSearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+            a = CharField()
+            b = FloatField(sources=["c"])
+
+            @classmethod
+            def _get_raw_mapping(cls):
+                return list()
+
+        mapping = NotExcludingFieldsSearchSet.get_mapping()
+        self.assertSequenceEqual(mapping, ["a", "b", "c"])
+
+    def test_exclude_fields_in_searchset_class(self):
+        class ExcludeFieldsInClassSearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+            a = CharField()
+            b = FloatField(sources=["c"])
+
+            fields_to_exclude_from_mapping = ["b"]
+
+            @classmethod
+            def _get_raw_mapping(cls):
+                return list()
+
+        mapping = ExcludeFieldsInClassSearchSet.get_mapping()
+        self.assertSequenceEqual(mapping, ["a", "c"])
+
+    def test_exclude_sources_in_field(self):
+        class ExcludeSourcesInFieldsSearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+            a = CharField()
+            b = FloatField(sources=["c"], exclude_sources_from_mapping=True)
+
+            @classmethod
+            def _get_raw_mapping(cls):
+                return list()
+
+        mapping = ExcludeSourcesInFieldsSearchSet.get_mapping()
+        self.assertSequenceEqual(mapping, ["a", "b"])

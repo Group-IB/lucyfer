@@ -12,9 +12,8 @@ from tests.utils import compare_dicts, Panic
 class MyElasticSearchSet(ElasticSearchSet):
     field = ElasticSearchField()
     range_or_match = RangeOrMatchField()
-    field_with_source = ElasticSearchField(source="source")
+    field_with_source = ElasticSearchField(sources=["source"])
     field_with_several_sources = ElasticSearchField(sources=["source1", "source2"])
-    field_with_several_sources_and_source = ElasticSearchField(source="separated_source", sources=["source1", "source2"])
 
     int_field = IntegerField()
     float_field = FloatField()
@@ -54,10 +53,6 @@ class TestLuceneToDjangoParsing(TestParsing):
             (
                     Q("term", **{"source2": "value"}) | Q("term", **{"source1": "value"}),
                     ["field_with_several_sources: value", ]
-            ),
-            (
-                    Q("term", **{"source2": "value"}) | Q("term", **{"source1": "value"}) | Q("term", **{"separated_source": "value"}),
-                    ["field_with_several_sources_and_source: value", ]
             ),
     ))
     def test_values_with_source(self, expected_query, raw_expressions):
