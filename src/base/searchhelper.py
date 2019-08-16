@@ -1,36 +1,38 @@
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict
 
 
-# todo cache
 # todo db replaces
-# todo check if field is source or just field name
 
 
 class MappingValue:
     name = None
     source = None
     _cached_values = None
+    _max_cached_values_by_prefix = 10
 
     def __init__(self, name, sources=None):
         self.name = name
         self.source = sources if sources is not None else [name]
 
-    def extend_cached_values(self, values):
+    def get_values(self, prefix=''):
         if self._cached_values is None:
-            self.update_cached_values(values)
-        else:
-            self._cached_values.extend(values)
+            self._cached_values = dict()
+        elif prefix in self._cached_values:
+            return self._cached_values[prefix]
+        self._cached_values[prefix] = self._get_values(prefix)
 
-    def update_cached_values(self, values):
-        self._cached_values = values
+    def _get_values(self, prefix):
+        raise NotImplementedError()
 
 
 class Mapping(OrderedDict):
+    value_class = None
+
     def update_raw_sources(self, raw_sources):
-        self.update({source: MappingValue(name=source) for source in raw_sources})
+        self.update({source: self.value_class(name=source) for source in raw_sources})
 
     def update_named_sources(self, name_to_sources):
-        self.update({name: MappingValue(name=name, sources=source) for name, source in name_to_sources.items()})
+        self.update({name: self.value_class(name=name, sources=source) for name, source in name_to_sources.items()})
 
 
 class SearchHelperMixin:
@@ -42,13 +44,6 @@ class SearchHelperMixin:
 
     _full_mapping = None
     _raw_mapping = None
-    _cached_field_values = None
-
-    # @classmethod
-    # def get_cached_field_values(cls):
-    #     if cls._cached_field_values is None:
-    #         cls._cached_field_values = cls._get_cached_field_values()
-    #     return cls._cached_field_values
 
     @classmethod
     def get_mapping(cls):
@@ -64,8 +59,8 @@ class SearchHelperMixin:
     def get_fields_values(cls, field_name, prefix=''):
         if field_name not in cls.get_mapping():
             return []
-        # TODO
-        return []
+
+        return cls._full_mapping[field_name].get_values(prefix=prefix)
 
     @classmethod
     def get_raw_mapping(cls):
@@ -75,11 +70,6 @@ class SearchHelperMixin:
         if cls._raw_mapping is None:
             cls._raw_mapping = cls._get_raw_mapping()
         return cls._raw_mapping
-
-    # @classmethod
-    # def _get_cached_field_values(cls):
-    #     field_to_values = defaultdict(list)
-    #
 
     @classmethod
     def _get_mapping(cls) -> Mapping:
@@ -94,22 +84,21 @@ class SearchHelperMixin:
 
         mapping = Mapping()
 
+        # create mapping values from fields in searchset class
         for field_name, field in cls.get_field_name_to_field().items():
             if field_name not in fields_to_exclude_from_mapping:
-                mapping[field_name] = MappingValue(name=field_name, sources=field.sources)
+                mapping[field_name] = Mapping.value_class(name=field_name, sources=field.sources)
             if not field.exclude_sources_from_mapping:
-                for source in field.sources:
-                    mapping[source] = MappingValue(name=source)
+                mapping.update_raw_sources(field.sources)
 
+        # update mapping from mapping in database/elastic/etc
         raw_mapping = cls.get_raw_mapping()
-        for name in raw_mapping:
-            if name not in fields_to_exclude_from_mapping:
-                mapping[name] = MappingValue(name=name)
+        mapping.update_raw_sources((name for name in raw_mapping if name not in fields_to_exclude_from_mapping))
 
         return mapping
 
     @classmethod
-    def _get_raw_mapping(cls):
+    def _get_raw_mapping(cls) -> list:
         """
         That method allows to get mapping in raw format. It have to be reimplemented
         """
