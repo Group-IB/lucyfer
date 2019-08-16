@@ -25,6 +25,9 @@ class SearchHelperMixin:
 
     @classmethod
     def get_fields_values(cls, field_name, prefix=''):
+        """
+        Returns search helpers for field by prefix
+        """
         if field_name not in cls.get_mapping():
             return []
 
