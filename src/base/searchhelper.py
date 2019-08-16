@@ -1,3 +1,29 @@
+from collections import defaultdict
+
+
+# todo cache
+# todo db replaces
+# todo check if field is source or just field name
+
+
+class MappingValue:
+    name = None
+    source = None
+    _cached_values = None
+
+    def __init__(self, name, source=None):
+        self.name = name
+        self.source = source if source is not None else name
+
+
+class Mapping(dict):
+    def update_raw_sources(self, raw_sources):
+        self.update({source: MappingValue(name=source) for source in raw_sources})
+
+    def update_named_sources(self, name_to_sources):
+        self.update({name: MappingValue(name=name, source=source) for name, source in name_to_sources.items()})
+
+
 class SearchHelperMixin:
     """
     SearchHelperMixin provides possibility to get mapping and search helpers for user-friendly search API
@@ -7,6 +33,7 @@ class SearchHelperMixin:
 
     _full_mapping = None
     _raw_mapping = None
+    _cached_field_values = None
 
     @classmethod
     def exclude_mapping_fields(cls, mapping):
@@ -28,6 +55,12 @@ class SearchHelperMixin:
 
         return list(set(mapping) - set(fields_to_exclude_from_mapping))
 
+    # @classmethod
+    # def get_cached_field_values(cls):
+    #     if cls._cached_field_values is None:
+    #         cls._cached_field_values = cls._get_cached_field_values()
+    #     return cls._cached_field_values
+
     @classmethod
     def get_mapping(cls):
         """
@@ -39,6 +72,13 @@ class SearchHelperMixin:
         return cls._full_mapping
 
     @classmethod
+    def get_fields_values(cls, field_name, prefix=''):
+        if field_name not in cls.get_mapping():
+            return []
+        # TODO
+        return []
+
+    @classmethod
     def get_raw_mapping(cls):
         """
         Caches raw mapping and return it
@@ -46,6 +86,11 @@ class SearchHelperMixin:
         if cls._raw_mapping is None:
             cls._raw_mapping = cls._get_raw_mapping()
         return cls._raw_mapping
+
+    # @classmethod
+    # def _get_cached_field_values(cls):
+    #     field_to_values = defaultdict(list)
+    #
 
     @classmethod
     def _get_mapping(cls):
