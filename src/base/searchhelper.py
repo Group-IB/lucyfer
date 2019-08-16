@@ -1,38 +1,4 @@
-from collections import OrderedDict
-
-
 # todo db replaces
-
-
-class MappingValue:
-    name = None
-    source = None
-    _cached_values = None
-    _max_cached_values_by_prefix = 10
-
-    def __init__(self, name, sources=None):
-        self.name = name
-        self.source = sources if sources is not None else [name]
-
-    def get_values(self, prefix=''):
-        if self._cached_values is None:
-            self._cached_values = dict()
-        elif prefix in self._cached_values:
-            return self._cached_values[prefix]
-        self._cached_values[prefix] = self._get_values(prefix)
-
-    def _get_values(self, prefix):
-        raise NotImplementedError()
-
-
-class Mapping(OrderedDict):
-    value_class = None
-
-    def update_raw_sources(self, raw_sources):
-        self.update({source: self.value_class(name=source) for source in raw_sources})
-
-    def update_named_sources(self, name_to_sources):
-        self.update({name: self.value_class(name=name, sources=source) for name, source in name_to_sources.items()})
 
 
 class SearchHelperMixin:
@@ -41,6 +7,8 @@ class SearchHelperMixin:
     """
 
     fields_to_exclude_from_mapping = None
+
+    _mapping_class = None
 
     _full_mapping = None
     _raw_mapping = None
@@ -72,7 +40,7 @@ class SearchHelperMixin:
         return cls._raw_mapping
 
     @classmethod
-    def _get_mapping(cls) -> Mapping:
+    def _get_mapping(cls):
         """
         Returns mapping extended by handwritten fields and its sources
         """
@@ -82,12 +50,12 @@ class SearchHelperMixin:
         else:
             fields_to_exclude_from_mapping = list()
 
-        mapping = Mapping()
+        mapping = cls._mapping_class()
 
         # create mapping values from fields in searchset class
         for field_name, field in cls.get_field_name_to_field().items():
             if field_name not in fields_to_exclude_from_mapping:
-                mapping[field_name] = Mapping.value_class(name=field_name, sources=field.sources)
+                mapping.add_value(name=field_name, sources=field.sources)
             if not field.exclude_sources_from_mapping:
                 mapping.update_raw_sources(field.sources)
 
