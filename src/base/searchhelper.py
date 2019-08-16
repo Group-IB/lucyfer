@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 
 
 # todo cache
@@ -11,17 +11,26 @@ class MappingValue:
     source = None
     _cached_values = None
 
-    def __init__(self, name, source=None):
+    def __init__(self, name, sources=None):
         self.name = name
-        self.source = source if source is not None else name
+        self.source = sources if sources is not None else [name]
+
+    def extend_cached_values(self, values):
+        if self._cached_values is None:
+            self.update_cached_values(values)
+        else:
+            self._cached_values.extend(values)
+
+    def update_cached_values(self, values):
+        self._cached_values = values
 
 
-class Mapping(dict):
+class Mapping(OrderedDict):
     def update_raw_sources(self, raw_sources):
         self.update({source: MappingValue(name=source) for source in raw_sources})
 
     def update_named_sources(self, name_to_sources):
-        self.update({name: MappingValue(name=name, source=source) for name, source in name_to_sources.items()})
+        self.update({name: MappingValue(name=name, sources=source) for name, source in name_to_sources.items()})
 
 
 class SearchHelperMixin:
@@ -34,26 +43,6 @@ class SearchHelperMixin:
     _full_mapping = None
     _raw_mapping = None
     _cached_field_values = None
-
-    @classmethod
-    def exclude_mapping_fields(cls, mapping):
-        """
-        Returns mapping without fields to exclude
-        it may be:
-            1) sources inside of fields
-            2) fields in cls.fields_to_exclude_from_mapping
-        """
-
-        if cls.fields_to_exclude_from_mapping is not None:
-            fields_to_exclude_from_mapping = cls.fields_to_exclude_from_mapping
-        else:
-            fields_to_exclude_from_mapping = list()
-
-        for field in cls.get_field_name_to_field().values():
-            if field.exclude_sources_from_mapping:
-                fields_to_exclude_from_mapping.extend(field.sources)
-
-        return list(set(mapping) - set(fields_to_exclude_from_mapping))
 
     # @classmethod
     # def get_cached_field_values(cls):
@@ -68,8 +57,8 @@ class SearchHelperMixin:
         Except of excluded fields/sources
         """
         if cls._full_mapping is None:
-            cls._full_mapping = sorted(cls.exclude_mapping_fields(cls._get_mapping()))
-        return cls._full_mapping
+            cls._full_mapping = cls._get_mapping()
+        return cls._full_mapping.keys()
 
     @classmethod
     def get_fields_values(cls, field_name, prefix=''):
@@ -93,19 +82,31 @@ class SearchHelperMixin:
     #
 
     @classmethod
-    def _get_mapping(cls):
+    def _get_mapping(cls) -> Mapping:
         """
         Returns mapping extended by handwritten fields and its sources
         """
-        all_sources = []
+
+        if cls.fields_to_exclude_from_mapping is not None:
+            fields_to_exclude_from_mapping = cls.fields_to_exclude_from_mapping
+        else:
+            fields_to_exclude_from_mapping = list()
+
+        mapping = Mapping()
 
         for field_name, field in cls.get_field_name_to_field().items():
-            all_sources.append(field_name)
-            all_sources.extend(field.sources)
+            if field_name not in fields_to_exclude_from_mapping:
+                mapping[field_name] = MappingValue(name=field_name, sources=field.sources)
+            if not field.exclude_sources_from_mapping:
+                for source in field.sources:
+                    mapping[source] = MappingValue(name=source)
 
-        all_sources.extend(cls.get_raw_mapping())
+        raw_mapping = cls.get_raw_mapping()
+        for name in raw_mapping:
+            if name not in fields_to_exclude_from_mapping:
+                mapping[name] = MappingValue(name=name)
 
-        return list(set(all_sources))
+        return mapping
 
     @classmethod
     def _get_raw_mapping(cls):
