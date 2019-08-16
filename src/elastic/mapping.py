@@ -3,11 +3,21 @@ from src.base.mapping import MappingValue, Mapping
 
 class ElasticMappingValue(MappingValue):
     def _get_values(self, model, prefix):
-        search = model.search().extra(size=0).query('query_string',
-                                                    **{"default_field": self.name, "query": f'*{prefix}*'})
-        search.aggs.bucket(self.name, "terms", field=self.name)
-        result = search.execute().to_dict()["aggregations"][self.name]["buckets"]
-        return list(set([str(val["key"]) for val in result if prefix in val["key"]]))
+        search = model.search().extra(size=0).query('query_string', **{"fields": self.sources, "query": f'*{prefix}*'})
+        for source in self.sources:
+            search.aggs.bucket(source, "terms", field=source)
+
+        aggs = search.execute().to_dict()["aggregations"]
+        result = []
+        for source in self.sources:
+            if aggs[source]["buckets"]:
+                result.extend(
+                    [val for val
+                     in [str(val["key"]) for val in aggs[source]["buckets"]]
+                     if prefix in val]
+                )
+
+        return list(set(result))
 
 
 class ElasticMapping(Mapping):
