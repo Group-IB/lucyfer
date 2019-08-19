@@ -1,6 +1,3 @@
-# todo db replaces
-
-
 class SearchHelperMixin:
     """
     SearchHelperMixin provides possibility to get mapping and search helpers for user-friendly search API
