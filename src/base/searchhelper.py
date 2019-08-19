@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from src.base.mapping import Mapping
 
@@ -8,11 +8,11 @@ class SearchHelperMixin:
     SearchHelperMixin provides possibility to get mapping and search helpers for user-friendly search API
     """
 
-    fields_to_exclude_from_mapping: List[str]
+    fields_to_exclude_from_mapping: Optional[List[str]] = None
 
     _mapping_class = None
 
-    _full_mapping: Mapping
+    _full_mapping: Optional[Mapping] = None
     _raw_mapping = None
 
     @classmethod
@@ -52,7 +52,7 @@ class SearchHelperMixin:
         else:
             fields_to_exclude_from_mapping = list()
 
-        mapping = cls._mapping_class()
+        mapping = cls._mapping_class(cls.Meta.model)
 
         # create mapping values from fields in searchset class
         for field_name, field in cls.get_field_name_to_field().items():
