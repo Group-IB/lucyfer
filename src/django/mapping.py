@@ -1,8 +1,10 @@
+from typing import List
+
 from src.base.mapping import MappingValue, Mapping
 
 
 class DjangoMappingValue(MappingValue):
-    def _get_values(self, model, prefix):
+    def _get_values(self, model, prefix: str) -> List[str]:
         result_qs = model.objects.filter(**{'{}__icontains'.format(self.sources[0]): prefix}).\
             values_list(self.sources[0], flat=True).distinct()
 
