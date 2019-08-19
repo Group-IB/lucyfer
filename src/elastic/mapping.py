@@ -17,7 +17,7 @@ class ElasticMappingValue(MappingValue):
                      if prefix in val]
                 )
 
-        return list(set(result))
+        return list(set(result))[:self._max_cached_values_by_prefix]
 
 
 class ElasticMapping(Mapping):

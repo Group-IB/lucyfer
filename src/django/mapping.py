@@ -14,6 +14,8 @@ class DjangoMappingValue(MappingValue):
         if other_qss:
             result_qs = result_qs.union(*other_qss)
 
+        result_qs = result_qs[:self._max_cached_values_by_prefix]
+
         return list(set(result_qs))
 
 
