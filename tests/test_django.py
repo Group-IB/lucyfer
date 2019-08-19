@@ -140,7 +140,7 @@ class TestMapping(TestCase):
                 return list()
 
         mapping = NotExcludingFieldsSearchSet.get_mapping()
-        self.assertSequenceEqual(mapping, ["a", "b", "c"])
+        self.assertSequenceEqual(list(mapping), ["a", "b", "c"])
 
     def test_exclude_fields_in_searchset_class(self):
         class ExcludeFieldsInClassSearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
@@ -154,7 +154,7 @@ class TestMapping(TestCase):
                 return list()
 
         mapping = ExcludeFieldsInClassSearchSet.get_mapping()
-        self.assertSequenceEqual(mapping, ["a", "c"])
+        self.assertSequenceEqual(list(mapping), ["a", "c"])
 
     def test_exclude_sources_in_field(self):
         class ExcludeSourcesInFieldsSearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
@@ -166,4 +166,4 @@ class TestMapping(TestCase):
                 return list()
 
         mapping = ExcludeSourcesInFieldsSearchSet.get_mapping()
-        self.assertSequenceEqual(mapping, ["a", "b"])
+        self.assertSequenceEqual(list(mapping), ["a", "b"])

@@ -1,9 +1,12 @@
 from src.base.searchhelper import SearchHelperMixin
+from src.elastic.mapping import ElasticMapping
 
 
 class ElasticSearchHelperMixin(SearchHelperMixin):
+    _mapping_class = ElasticMapping
+
     @classmethod
-    def _format_mapping_values(cls, mapping, prefix=""):
+    def _format_mapping_values(cls, mapping, prefix="") -> list:
         keys = []
 
         for key, value in mapping.items():
@@ -14,7 +17,7 @@ class ElasticSearchHelperMixin(SearchHelperMixin):
         return keys
 
     @classmethod
-    def _get_raw_mapping(cls):
+    def _get_raw_mapping(cls) -> list:
         model_instance = cls.Meta.model()
         mapping = model_instance.get_es_client().indices.get_mapping(index=model_instance._get_index())
         if not mapping:
