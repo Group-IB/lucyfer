@@ -139,6 +139,9 @@ class TestMapping(TestCase):
             def _get_raw_mapping(cls):
                 return list()
 
+            class Meta:
+                model = None
+
         mapping = NotExcludingFieldsSearchSet.get_mapping()
         self.assertSequenceEqual(list(mapping), ["a", "b", "c"])
 
@@ -153,6 +156,9 @@ class TestMapping(TestCase):
             def _get_raw_mapping(cls):
                 return list()
 
+            class Meta:
+                model = None
+
         mapping = ExcludeFieldsInClassSearchSet.get_mapping()
         self.assertSequenceEqual(list(mapping), ["a", "c"])
 
@@ -164,6 +170,9 @@ class TestMapping(TestCase):
             @classmethod
             def _get_raw_mapping(cls):
                 return list()
+
+            class Meta:
+                model = None
 
         mapping = ExcludeSourcesInFieldsSearchSet.get_mapping()
         self.assertSequenceEqual(list(mapping), ["a", "b"])
