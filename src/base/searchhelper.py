@@ -1,27 +1,32 @@
+from typing import List
+
+from src.base.mapping import Mapping
+
+
 class SearchHelperMixin:
     """
     SearchHelperMixin provides possibility to get mapping and search helpers for user-friendly search API
     """
 
-    fields_to_exclude_from_mapping = None
+    fields_to_exclude_from_mapping: List[str]
 
     _mapping_class = None
 
-    _full_mapping = None
+    _full_mapping: Mapping
     _raw_mapping = None
 
     @classmethod
-    def get_mapping(cls):
+    def get_mapping(cls) -> List[str]:
         """
         Returns full mapping with handwritten fields in search set class and their sources
         Except of excluded fields/sources
         """
         if cls._full_mapping is None:
             cls._full_mapping = cls._get_mapping()
-        return cls._full_mapping.keys()
+        return list(cls._full_mapping.keys())
 
     @classmethod
-    def get_fields_values(cls, field_name, prefix=''):
+    def get_fields_values(cls, field_name, prefix='') -> List[str]:
         """
         Returns search helpers for field by prefix
         """
@@ -63,7 +68,7 @@ class SearchHelperMixin:
         return mapping
 
     @classmethod
-    def _get_raw_mapping(cls) -> list:
+    def _get_raw_mapping(cls) -> List[str]:
         """
         That method allows to get mapping in raw format. It have to be reimplemented
         """
