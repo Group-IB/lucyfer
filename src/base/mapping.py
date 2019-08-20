@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Type, Dict, List
+from typing import Type, Dict, List, Optional
 
 
 class MappingValue:
@@ -9,12 +9,13 @@ class MappingValue:
     name: str
     sources: List[str]
 
-    _cached_values: Dict[str, List[str]]
+    _cached_values: Optional[Dict[str, List[str]]] = None
     _max_cached_values_by_prefix = 10
 
-    def __init__(self, name: str, sources=None):
+    def __init__(self, name: str, sources=None, get_available_values_method=None):
         self.name = name
-        self.sources = sources if sources is not None else [name]
+        self.sources = sources if sources else [name]
+        self.get_available_values_method = get_available_values_method
 
     def get_values(self, model, prefix='') -> List[str]:
         if self._cached_values is None:
@@ -23,7 +24,12 @@ class MappingValue:
         if not self._cached_values.get(prefix):
             self._cached_values[prefix] = self._get_values(model, prefix)
 
-        return self._cached_values.get(prefix, list())
+        result = self._cached_values.get(prefix, list())
+        if self.get_available_values_method is not None:
+            available_values = self.get_available_values_method()
+            result = [value for value in result if value in available_values]
+
+        return result[:self._max_cached_values_by_prefix]
 
     def _get_values(self, model, prefix: str) -> List[str]:
         raise NotImplementedError()
@@ -40,14 +46,15 @@ class Mapping(OrderedDict):
     _value_class: Type[MappingValue]
     _model = None
 
-    def add_value(self, name: str, **kwargs):
-        self.update({name: self._value_class(name=name, **kwargs)})
+    def add_value(self, name: str, get_available_values_method=None, **kwargs):
+        self.update({name: self._value_class(name=name,
+                                             get_available_values_method=get_available_values_method,
+                                             **kwargs)})
 
-    def update_raw_sources(self, raw_sources: List[str]):
-        self.update({source: self._value_class(name=source) for source in raw_sources})
-
-    def update_named_sources(self, name_to_sources: Dict[str, str]):
-        self.update({name: self._value_class(name=name, sources=source) for name, source in name_to_sources.items()})
+    def update_raw_sources(self, raw_sources: List[str], get_available_values_method=None):
+        self.update({source: self._value_class(name=source, get_available_values_method=get_available_values_method)
+                     for source in raw_sources
+                     if source not in self})
 
     def get_values(self, field_name: str, prefix: str) -> List[str]:
         """
