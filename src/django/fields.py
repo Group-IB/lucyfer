@@ -6,7 +6,7 @@ from src.utils import LuceneSearchCastValueException
 
 
 class DjangoSearchField(BaseSearchField):
-    DEFAULT_LOOKUP = "iexact"
+    DEFAULT_LOOKUP = "icontains"
 
     def create_query_for_sources(self, condition):
         query = Q()
