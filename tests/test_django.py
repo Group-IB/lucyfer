@@ -206,3 +206,47 @@ class TestSearchHelpers(TestCase):
                 model = Model
 
         self.assertEqual(sorted(["b", "c"]), sorted(MySearchSet.get_fields_values(field_name="a", prefix="")))
+
+    def test_show_suggestions(self):
+        class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+            a = CharField(get_available_values_method=lambda: ["b", "c"])
+
+            @classmethod
+            def _get_raw_mapping(cls):
+                return list()
+
+            class Meta:
+                model = Model
+
+            fields_to_exclude_from_suggestions = ["a"]
+
+        self.assertEqual(list(), MySearchSet.get_fields_values(field_name="a", prefix=""))
+
+        class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+            a = CharField(get_available_values_method=lambda: ["b", "c"], show_suggestions=False)
+
+            @classmethod
+            def _get_raw_mapping(cls):
+                return list()
+
+            class Meta:
+                model = Model
+
+        self.assertEqual(list(), MySearchSet.get_fields_values(field_name="a", prefix=""))
+
+    def test_get_mapping_with_suggestion_option(self):
+
+        class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+            a = CharField(get_available_values_method=lambda: ["b", "c"], show_suggestions=False)
+            b = CharField()
+
+            @classmethod
+            def _get_raw_mapping(cls):
+                return ["c", "d"]
+
+            class Meta:
+                model = Model
+
+            fields_to_exclude_from_suggestions = ["d"]
+
+        self.assertEqual({"a": False, "b": True, "c": True, "d": False}, MySearchSet.get_mapping_to_suggestion())
