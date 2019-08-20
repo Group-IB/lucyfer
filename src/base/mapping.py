@@ -12,12 +12,18 @@ class MappingValue:
     _cached_values: Optional[Dict[str, List[str]]] = None
     _max_cached_values_by_prefix = 10
 
-    def __init__(self, name: str, sources=None, get_available_values_method=None):
+    def __init__(self, name: str, sources=None, get_available_values_method=None, show_suggestions=True):
         self.name = name
         self.sources = sources if sources else [name]
+
         self.get_available_values_method = get_available_values_method
 
+        self.show_suggestions = show_suggestions
+
     def get_values(self, model, prefix='') -> List[str]:
+        if not self.show_suggestions:
+            return list()
+
         if self._cached_values is None:
             self._cached_values = dict()
 
@@ -39,6 +45,7 @@ class Mapping(OrderedDict):
     """
     Mapping as a dict
     """
+
     def __init__(self, model, *args, **kwargs):
         self.model = model
         super().__init__(*args, **kwargs)
@@ -46,15 +53,13 @@ class Mapping(OrderedDict):
     _value_class: Type[MappingValue]
     _model = None
 
-    def add_value(self, name: str, get_available_values_method=None, **kwargs):
-        self.update({name: self._value_class(name=name,
-                                             get_available_values_method=get_available_values_method,
-                                             **kwargs)})
-
-    def update_raw_sources(self, raw_sources: List[str], get_available_values_method=None):
-        self.update({source: self._value_class(name=source, get_available_values_method=get_available_values_method)
-                     for source in raw_sources
-                     if source not in self})
+    def add_value(self, name: str, sources=None, get_available_values_method=None, show_suggestions=True):
+        if name not in self:
+            self.update({name: self._value_class(name=name,
+                                                 sources=sources,
+                                                 get_available_values_method=get_available_values_method,
+                                                 show_suggestions=show_suggestions,
+                                                 )})
 
     def get_values(self, field_name: str, prefix: str) -> List[str]:
         """
