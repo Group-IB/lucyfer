@@ -10,22 +10,29 @@ class LuceneToDjangoParserMixin(BaseLuceneParserMixin):
         if isinstance(tree, ExpressionNode):
             return cls.get_query_for_field(tree)
 
-        if isinstance(tree, AndNode):
-            query = Q()
-            for child in tree.children:
-                query = query & cls._parse_tree(tree=child)
-            return (query)
+        is_and_node = isinstance(tree, AndNode)
+        is_or_node = isinstance(tree, OrNode)
+        is_not_node = isinstance(tree, NotNode)
 
-        if isinstance(tree, OrNode):
-            query = Q()
-            for child in tree.children:
-                query = query | cls._parse_tree(tree=child)
-            return (query)
+        query = Q()
 
-        if isinstance(tree, NotNode):
-            children_query = Q()
-            for child in tree.children:
-                children_query = children_query & cls._parse_tree(tree=child)
-            return ~Q(children_query)
+        if is_and_node or is_not_node or is_or_node:
+            queries = [cls._parse_tree(tree=child) for child in tree.children]
+            queries = [q for q in queries if q is not None]
 
-        return Q()
+            if is_and_node:
+                for q in queries:
+                    query = query & q
+                query = (query)
+
+            elif is_or_node:
+                for q in queries:
+                    query = query | q
+                query = (query)
+
+            elif is_not_node:
+                for q in queries:
+                    query = query & q
+                query = ~Q(query)
+
+        return query

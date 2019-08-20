@@ -29,7 +29,7 @@ class ElasticSearchField(BaseSearchField):
     @negate_query_if_necessary
     def get_query(self, condition):
         if self.match_all(value=condition.value):
-            return Q("match", **{condition.name: condition.value})
+            return None
 
         return self.create_query_for_sources(condition=condition)
 

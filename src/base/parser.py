@@ -17,7 +17,12 @@ class BaseLuceneParserMixin:
         except BaseLucyException:
             raise LuceneSearchException()
 
-        return cls._parse_tree(tree=tree)
+        parsed_tree = cls._parse_tree(tree=tree)
+
+        if parsed_tree is None:
+            raise LuceneSearchException()
+
+        return parsed_tree
 
     @classmethod
     def _parse_tree(cls, tree: BaseNode):
