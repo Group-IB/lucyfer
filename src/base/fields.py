@@ -61,7 +61,9 @@ def negate_query_if_necessary(func):
     """
     def wrapper(self, condition):
         query = func(self, condition)
-        if condition.operator == Operator.NEQ:
+
+        if query is not None and condition.operator == Operator.NEQ:
             query = query.__invert__()
+
         return query
     return wrapper

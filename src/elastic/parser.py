@@ -12,28 +12,30 @@ class LuceneToElasticParserMixin(BaseLuceneParserMixin):
 
         query = None
 
-        if isinstance(tree, AndNode):
-            for child in tree.children:
-                if query is None:
-                    query = cls._parse_tree(tree=child)
-                else:
-                    query = query & cls._parse_tree(tree=child)
+        is_and_node = isinstance(tree, AndNode)
+        is_or_node = isinstance(tree, OrNode)
+        is_not_node = isinstance(tree, NotNode)
 
-        elif isinstance(tree, OrNode):
-            for child in tree.children:
-                if query is None:
-                    query = cls._parse_tree(tree=child)
-                else:
-                    query = query | cls._parse_tree(tree=child)
+        if is_and_node or is_not_node or is_or_node:
+            queries = [cls._parse_tree(tree=child) for child in tree.children]
+            queries = [q for q in queries if q is not None]
 
-        elif isinstance(tree, NotNode):
-            for child in tree.children:
-                if query is None:
-                    query = cls._parse_tree(tree=child)
-                else:
-                    query = query & cls._parse_tree(tree=child)
+            if not queries:
+                return None
 
-            if query is not None:
+            query = queries[0]
+
+            if is_and_node:
+                for q in queries[1:]:
+                    query = query & q
+
+            elif is_or_node:
+                for q in queries[1:]:
+                    query = query | q
+
+            elif is_not_node:
+                for q in queries[1:]:
+                    query = query & q
                 query = ~Q(query)
 
-        return query if query is not None else Q()
+        return query
