@@ -176,3 +176,33 @@ class TestMapping(TestCase):
 
         mapping = ExcludeSourcesInFieldsSearchSet.get_mapping()
         self.assertSequenceEqual(list(mapping), ["a", "b"])
+
+
+class Model:
+    class objects:
+        @classmethod
+        def filter(cls, *args, **kwargs):
+            return cls
+
+        @classmethod
+        def values_list(cls, *args, **kwargs):
+            return cls
+
+        @classmethod
+        def distinct(cls):
+            return ["a", "b", "c"]
+
+
+class TestSearchHelpers(TestCase):
+    def test_get_available_method(self):
+        class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+            a = CharField(get_available_values_method=lambda: ["b", "c"])
+
+            @classmethod
+            def _get_raw_mapping(cls):
+                return list()
+
+            class Meta:
+                model = Model
+
+        self.assertEqual(sorted(["b", "c"]), sorted(MySearchSet.get_fields_values(field_name="a", prefix="")))

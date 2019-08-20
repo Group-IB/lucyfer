@@ -11,15 +11,16 @@ class BaseSearchField:
     DEFAULT_LOOKUP: str
     OPERATOR_TO_LOOKUP: Dict[Operator, str] = dict()
 
-    def __init__(self, sources=None, exclude_sources_from_mapping=False, *args, **kwargs):
+    def __init__(self, sources=None, exclude_sources_from_mapping=False, get_available_values_method=None, *args, **kwargs):
         sources = list() if sources is None else sources
-        self.sources = set(sources)
+        self.sources = list(set(sources))
 
         self.exclude_sources_from_mapping = exclude_sources_from_mapping
+        self.get_available_values_method = get_available_values_method
 
     def cast_value(self, value: str):
         """
-        Method for value casting if it necessary
+        Method for value casting if it necessary (or for ex. for search replaces)
         """
         return value
 
