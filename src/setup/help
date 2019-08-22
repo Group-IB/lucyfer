@@ -1,0 +1,5 @@
+python3 src/setup/lusya_setup.py sdist bdist_wheel
+python3 -m twine upload dist/*
+
+python3 src/setup/lucyfer_setup.py sdist bdist_wheel
+python3 -m twine upload dist/*
