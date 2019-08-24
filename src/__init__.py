@@ -1,1 +1,1 @@
-name = "lucyfer"
+name = "django_lucy"

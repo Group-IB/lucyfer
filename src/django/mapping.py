@@ -1,6 +1,6 @@
 from typing import List
 
-from src.base.mapping import MappingValue, Mapping
+from ..base.mapping import MappingValue, Mapping
 
 
 class DjangoMappingValue(MappingValue):

@@ -1,8 +1,8 @@
 from django.db.models import Q
 from lucyparser.tree import Operator
 
-from src.base.fields import BaseSearchField, negate_query_if_necessary
-from src.utils import LuceneSearchCastValueException
+from ..base.fields import BaseSearchField, negate_query_if_necessary
+from ..utils import LuceneSearchCastValueException
 
 
 class DjangoSearchField(BaseSearchField):

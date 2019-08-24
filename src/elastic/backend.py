@@ -1,6 +1,6 @@
 from rest_framework_elasticsearch.es_filters import BaseEsFilterBackend
 
-from src.utils import LuceneSearchException
+from ..utils import LuceneSearchException
 
 
 class ElasticLuceneSearchFilterMixin(BaseEsFilterBackend):

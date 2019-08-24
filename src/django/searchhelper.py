@@ -1,7 +1,7 @@
 from typing import List
 
-from src.base.searchhelper import SearchHelperMixin
-from src.django.mapping import DjangoMapping
+from ..base.searchhelper import SearchHelperMixin
+from ..django.mapping import DjangoMapping
 
 
 class DjangoSearchHelperMixin(SearchHelperMixin):
