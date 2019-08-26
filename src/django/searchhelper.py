@@ -9,4 +9,4 @@ class DjangoSearchHelperMixin(SearchHelperMixin):
 
     @classmethod
     def _get_raw_mapping(cls) -> List[str]:
-        return list(cls.Meta.model._meta.fields)
+        return [field.name for field in cls.Meta.model._meta.fields]
