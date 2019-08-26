@@ -5,6 +5,7 @@ class BaseSearchSet:
     _field_base_class = None
     _field_name_to_search_field_instance = None
     _field_sources: Optional[List[str]] = None
+    _default_field = None
 
     @classmethod
     def get_field_name_to_field(cls):
@@ -36,4 +37,4 @@ class BaseSearchSet:
         """
         Returns Q object with query for parsed condition
         """
-        return cls.get_field_name_to_field().get(condition.name, cls._field_base_class()).get_query(condition)
+        return cls.get_field_name_to_field().get(condition.name, cls._default_field()).get_query(condition)
