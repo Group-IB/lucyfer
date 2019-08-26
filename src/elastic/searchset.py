@@ -5,6 +5,7 @@ from ..elastic.parser import LuceneToElasticParserMixin
 
 class ElasticSearchSet(LuceneToElasticParserMixin, BaseSearchSet):
     _field_base_class = ElasticSearchField
+    _default_field = ElasticSearchField
 
     @classmethod
     def filter(cls, search, search_terms):

@@ -5,7 +5,7 @@ from ..base.fields import BaseSearchField, negate_query_if_necessary
 from ..utils import LuceneSearchCastValueException
 
 
-class DjangoSearchField(BaseSearchField):
+class DjangoSearchFieldWithoutWildcard(BaseSearchField):
     DEFAULT_LOOKUP = "icontains"
 
     def create_query_for_sources(self, condition):
@@ -26,12 +26,7 @@ class DjangoSearchField(BaseSearchField):
         return self.create_query_for_sources(condition=condition)
 
 
-class CharField(DjangoSearchField):
-    OPERATOR_TO_LOOKUP = {
-        Operator.EQ: "icontains",
-        Operator.NEQ: "iexact",
-    }
-
+class DjangoSearchField(DjangoSearchFieldWithoutWildcard):
     def create_query_for_sources(self, condition):
         wildcard_parts = self.cast_value(condition.value).split("*")
 
@@ -67,7 +62,14 @@ class CharField(DjangoSearchField):
         return final_query
 
 
-class NumberField(DjangoSearchField):
+class CharField(DjangoSearchField):
+    OPERATOR_TO_LOOKUP = {
+        Operator.EQ: "icontains",
+        Operator.NEQ: "iexact",
+    }
+
+
+class NumberField(DjangoSearchFieldWithoutWildcard):
     OPERATOR_TO_LOOKUP = {
         Operator.GTE: "gte",
         Operator.LTE: "lte",
@@ -94,7 +96,7 @@ class FloatField(NumberField):
             raise LuceneSearchCastValueException()
 
 
-class BooleanField(DjangoSearchField):
+class BooleanField(DjangoSearchFieldWithoutWildcard):
     OPERATOR_TO_LOOKUP = {
         Operator.EQ: "exact",
         Operator.NEQ: "exact",
