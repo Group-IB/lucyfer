@@ -1,4 +1,3 @@
-import argparse
 import setuptools
 
 
@@ -17,15 +16,19 @@ class LibHelper:
     }
 
 
-class SetupCommand(argparse.ArgumentParser):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.add_argument('--lib', choices=[LibHelper.LUCYFER, LibHelper.LUSYA])
-        self.add_argument('--version')
+class SetupCommand:
+    _version = None
 
-        args = self.parse_args()
-        self.lib = args.lib
-        self.version = args.version
+    @property
+    def lib(self):
+        raise NotImplementedError()
+
+    @property
+    def version(self):
+        if self._version is None:
+            with open("src/setup/{}".format(self.lib)) as fp:
+                self._version = fp.readline()
+        return self._version
 
     def setup(self):
         kwargs = self._get_base_kwargs()
@@ -71,8 +74,3 @@ class SetupCommand(argparse.ArgumentParser):
             requirements.extend((r for r in req if r != "\n"))
 
         return requirements
-
-
-if __name__ == "__main__":
-    parser = SetupCommand()
-    parser.setup()
