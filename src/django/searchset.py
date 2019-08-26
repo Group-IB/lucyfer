@@ -1,6 +1,6 @@
-from src.base.searchset import BaseSearchSet
-from src.django.fields import DjangoSearchField
-from src.django.parser import LuceneToDjangoParserMixin
+from ..base.searchset import BaseSearchSet
+from ..django.fields import DjangoSearchField
+from ..django.parser import LuceneToDjangoParserMixin
 
 
 class DjangoSearchSet(LuceneToDjangoParserMixin, BaseSearchSet):

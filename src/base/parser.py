@@ -2,7 +2,7 @@ from lucyparser import parse
 from lucyparser.exceptions import BaseLucyException
 from lucyparser.tree import BaseNode
 
-from src.utils import LuceneSearchException
+from ..utils import LuceneSearchException
 
 
 class BaseLuceneParserMixin:

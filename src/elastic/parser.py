@@ -1,7 +1,7 @@
 from elasticsearch_dsl import Q
 from lucyparser.tree import ExpressionNode, AndNode, OrNode, NotNode
 
-from src.base.parser import BaseLuceneParserMixin
+from ..base.parser import BaseLuceneParserMixin
 
 
 class LuceneToElasticParserMixin(BaseLuceneParserMixin):

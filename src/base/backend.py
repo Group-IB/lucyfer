@@ -1,4 +1,4 @@
-from src.base.searchset import BaseSearchSet
+from .searchset import BaseSearchSet
 
 
 class LuceneSearchFilter:
