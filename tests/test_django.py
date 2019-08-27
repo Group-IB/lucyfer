@@ -205,7 +205,14 @@ class TestSearchHelpers(TestCase):
             class Meta:
                 model = Model
 
-        self.assertEqual(sorted(["b", "c"]), sorted(MySearchSet.get_fields_values(field_name="a", prefix="")))
+        self.assertEqual(sorted(["b", "c"]), sorted(MySearchSet.get_fields_values(qs=Model.objects, field_name="a",
+                                                                                  prefix="")))
+
+        self.assertEqual(sorted(["b", "c"]), sorted(MySearchSet.get_fields_values(qs=Model.objects, field_name="a",
+                                                                                  prefix="", cache_key="x")))
+
+        self.assertEqual(sorted(["b", "c"]), sorted(MySearchSet.get_fields_values(qs=Model.objects, field_name="a",
+                                                                                  prefix="", cache_key="y")))
 
     def test_show_suggestions(self):
         class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
@@ -220,7 +227,7 @@ class TestSearchHelpers(TestCase):
 
             fields_to_exclude_from_suggestions = ["a"]
 
-        self.assertEqual(list(), MySearchSet.get_fields_values(field_name="a", prefix=""))
+        self.assertEqual(list(), MySearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
 
         class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
             a = CharField(get_available_values_method=lambda: ["b", "c"], show_suggestions=False)
@@ -232,7 +239,7 @@ class TestSearchHelpers(TestCase):
             class Meta:
                 model = Model
 
-        self.assertEqual(list(), MySearchSet.get_fields_values(field_name="a", prefix=""))
+        self.assertEqual(list(), MySearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
 
     def test_get_mapping_with_suggestion_option(self):
 
