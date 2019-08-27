@@ -4,8 +4,8 @@ from ..base.mapping import MappingValue, Mapping
 
 
 class ElasticMappingValue(MappingValue):
-    def _get_values(self, model, prefix) -> List[str]:
-        search = model.search().extra(size=0).query('query_string', **{"fields": self.sources, "query": f'*{prefix}*'})
+    def _get_values(self, qs, prefix) -> List[str]:
+        search = qs.extra(size=0).query('query_string', **{"fields": self.sources, "query": f'*{prefix}*'})
         for source in self.sources:
             search.aggs.bucket(source, "terms", field=source)
 

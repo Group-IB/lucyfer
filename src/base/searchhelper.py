@@ -29,11 +29,11 @@ class SearchHelperMixin:
         return {k: v.show_suggestions for k, v in cls.get_full_mapping().items()}
 
     @classmethod
-    def get_fields_values(cls, field_name, prefix='') -> List[str]:
+    def get_fields_values(cls, qs, field_name, prefix='', cache_key=None) -> List[str]:
         """
         Returns search helpers for field by prefix
         """
-        return cls.get_full_mapping().get_values(field_name=field_name, prefix=prefix)
+        return cls.get_full_mapping().get_values(qs=qs, field_name=field_name, prefix=prefix, cache_key=cache_key)
 
     @classmethod
     def get_fields_to_exclude_from_mapping(cls) -> List[str]:
