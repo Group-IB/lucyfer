@@ -32,7 +32,7 @@ pip install lucyfer
 
 #### All examples illustrates `lucyfer` library usage. In `lusya` case anything is the same except of base classes.  
 ________________
-* Create your search backend class:
+Create your search backend class:
 
 ```python
 from lucyfer.base.backend import LuceneSearchFilter
@@ -44,7 +44,7 @@ class SearchBackend(DjangoLuceneSearchFilterMixin, ElasticLuceneSearchFilterMixi
     pass
 ``` 
 
-* Copy reference to `SearchBackend` class and include it in `DEFAULT_FILTER_BACKENDS` in `settings.py` instead of default search backend:
+Copy reference to `SearchBackend` class and include it in `DEFAULT_FILTER_BACKENDS` in `settings.py` instead of default search backend:
 
 ```python
 REST_FRAMEWORK = {
