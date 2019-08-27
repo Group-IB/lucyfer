@@ -74,14 +74,12 @@ class SearchHelperMixin:
             if field_name not in fields_to_exclude_from_mapping:
                 mapping.add_value(name=field_name,
                                   sources=field.sources,
-                                  get_available_values_method=field.get_available_values_method,
                                   show_suggestions=(field.show_suggestions
                                                     and field_name not in fields_to_exclude_from_suggestions))
 
             if not field.exclude_sources_from_mapping:
                 for source in field.sources:
                     mapping.add_value(name=source,
-                                      get_available_values_method=field.get_available_values_method,
                                       show_suggestions=source not in fields_to_exclude_from_suggestions)
 
         # update mapping from mapping in database/elastic/etc

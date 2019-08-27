@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, mock
 
 from django.db.models import Q
 from parameterized import parameterized
@@ -95,7 +95,7 @@ class TestLuceneToDjangoParsing(TestParsing):
 
     @parameterized.expand((
             (Q(char_field__icontains="aaa_aaa"), ["((((char_field: aaa_aaa))))", "((char_field: aaa_aaa))", ]),
-         ))
+    ))
     def test_several_dashes_rules(self, expected_query, raw_expressions):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
 
@@ -194,9 +194,11 @@ class Model:
 
 
 class TestSearchHelpers(TestCase):
-    def test_get_available_method(self):
+    django_mapping_get_values = "src.django.mapping.DjangoMappingValue._get_values"
+
+    def test_get_fields_values(self):
         class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
-            a = CharField(get_available_values_method=lambda: ["b", "c"])
+            a = CharField()
 
             @classmethod
             def _get_raw_mapping(cls):
@@ -205,18 +207,18 @@ class TestSearchHelpers(TestCase):
             class Meta:
                 model = Model
 
-        self.assertEqual(sorted(["b", "c"]), sorted(MySearchSet.get_fields_values(qs=Model.objects, field_name="a",
-                                                                                  prefix="")))
+        expected_values = sorted(["b", "c", "bb", "bba"])
 
-        self.assertEqual(sorted(["b", "c"]), sorted(MySearchSet.get_fields_values(qs=Model.objects, field_name="a",
-                                                                                  prefix="", cache_key="x")))
+        with mock.patch(self.django_mapping_get_values, return_value=expected_values):
+            self.assertEqual(expected_values, sorted(MySearchSet.get_fields_values(qs=Model.objects, field_name="a",
+                                                                                   prefix="")))
 
-        self.assertEqual(sorted(["b", "c"]), sorted(MySearchSet.get_fields_values(qs=Model.objects, field_name="a",
-                                                                                  prefix="", cache_key="y")))
+            self.assertEqual(expected_values, sorted(MySearchSet.get_fields_values(qs=Model.objects, field_name="a",
+                                                                                   prefix="", cache_key="x")))
 
     def test_show_suggestions(self):
         class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
-            a = CharField(get_available_values_method=lambda: ["b", "c"])
+            a = CharField()
 
             @classmethod
             def _get_raw_mapping(cls):
@@ -230,7 +232,7 @@ class TestSearchHelpers(TestCase):
         self.assertEqual(list(), MySearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
 
         class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
-            a = CharField(get_available_values_method=lambda: ["b", "c"], show_suggestions=False)
+            a = CharField(show_suggestions=False)
 
             @classmethod
             def _get_raw_mapping(cls):
@@ -242,9 +244,8 @@ class TestSearchHelpers(TestCase):
         self.assertEqual(list(), MySearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
 
     def test_get_mapping_with_suggestion_option(self):
-
         class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
-            a = CharField(get_available_values_method=lambda: ["b", "c"], show_suggestions=False)
+            a = CharField(show_suggestions=False)
             b = CharField()
 
             @classmethod

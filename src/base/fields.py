@@ -13,7 +13,6 @@ class BaseSearchField:
 
     def __init__(self, sources=None,
                  exclude_sources_from_mapping=False,
-                 get_available_values_method=None,
                  show_suggestions=True,
                  *args, **kwargs):
 
@@ -21,7 +20,6 @@ class BaseSearchField:
         self.sources = list(set(sources))
 
         self.exclude_sources_from_mapping = exclude_sources_from_mapping
-        self.get_available_values_method = get_available_values_method
         self.show_suggestions = show_suggestions
 
     def cast_value(self, value: str):
