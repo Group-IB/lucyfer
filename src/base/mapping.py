@@ -29,10 +29,10 @@ class MappingValue:
             result = self._get_values(qs, prefix)
         else:
             if not self._cached_values[cache_key].get(prefix):
-                self._cached_values[cache_key][prefix] = self._get_values(qs, prefix)
+                self._cached_values[cache_key][prefix] = self._get_values(qs, prefix)[:self._max_cached_values_by_prefix]
             result = self._cached_values[cache_key][prefix]
 
-        return result[:self._max_cached_values_by_prefix]
+        return result
 
     def _get_values(self, qs, prefix: str) -> List[str]:
         raise NotImplementedError()
