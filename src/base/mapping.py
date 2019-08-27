@@ -11,6 +11,7 @@ class MappingValue:
 
     _cached_values: Optional[Dict[str, Dict[str, List[str]]]] = None
     _max_cached_values_by_prefix = 10
+    _cache_values_min_length = 3
 
     def __init__(self, name: str, sources=None, get_available_values_method=None, show_suggestions=True):
         self.name = name
@@ -27,10 +28,13 @@ class MappingValue:
         if self._cached_values is None:
             self._cached_values = defaultdict(dict)
 
-        if not self._cached_values[cache_key].get(prefix):
-            self._cached_values[cache_key][prefix] = self._get_values(qs, prefix)
+        if len(prefix) < self._cache_values_min_length:
+            result = self._get_values(qs, prefix)
+        else:
+            if not self._cached_values[cache_key].get(prefix):
+                self._cached_values[cache_key][prefix] = self._get_values(qs, prefix)
+            result = self._cached_values[cache_key][prefix]
 
-        result = self._cached_values[cache_key].get(prefix, list())
         if self.get_available_values_method is not None:
             available_values = self.get_available_values_method()
             result = [value for value in result if value in available_values]
