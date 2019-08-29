@@ -10,6 +10,7 @@ class SearchHelperMixin:
 
     fields_to_exclude_from_mapping: Optional[List[str]] = None
     fields_to_exclude_from_suggestions: Optional[List[str]] = None
+    show_suggestions = True
 
     _mapping_class = None
 
@@ -64,31 +65,31 @@ class SearchHelperMixin:
         Fill mapping extended by handwritten fields and its sources
         """
 
-        fields_to_exclude_from_mapping = cls.get_fields_to_exclude_from_mapping()
-        fields_to_exclude_from_suggestions = cls.get_fields_to_exclude_from_suggestions()
+        mapping_exclude = cls.get_fields_to_exclude_from_mapping()
+        suggestions_exclude = cls.get_fields_to_exclude_from_suggestions()
 
         mapping = cls._mapping_class(cls.Meta.model)
 
         # create mapping values from fields in searchset class
         for field_name, field in cls.get_field_name_to_field().items():
-            if field_name not in fields_to_exclude_from_mapping:
+            if field_name not in mapping_exclude:
                 mapping.add_value(name=field_name,
                                   sources=field.sources,
-                                  show_suggestions=(field.show_suggestions
-                                                    and field_name not in fields_to_exclude_from_suggestions))
+                                  show_suggestions=(cls.show_suggestions and field.show_suggestions
+                                                    and field_name not in suggestions_exclude))
 
             if not field.exclude_sources_from_mapping:
                 for source in field.sources:
                     mapping.add_value(name=source,
-                                      show_suggestions=source not in fields_to_exclude_from_suggestions)
+                                      show_suggestions=cls.show_suggestions and source not in suggestions_exclude)
 
         # update mapping from mapping in database/elastic/etc
         raw_mapping = cls.get_raw_mapping()
 
         for name in raw_mapping:
-            if name not in fields_to_exclude_from_mapping:
+            if name not in mapping_exclude:
                 mapping.add_value(name=name,
-                                  show_suggestions=name not in fields_to_exclude_from_suggestions)
+                                  show_suggestions=cls.show_suggestions and name not in suggestions_exclude)
 
         cls._full_mapping = mapping
 
