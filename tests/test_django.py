@@ -258,3 +258,21 @@ class TestSearchHelpers(TestCase):
             fields_to_exclude_from_suggestions = ["d"]
 
         self.assertEqual({"a": False, "b": True, "c": True, "d": False}, MySearchSet.get_mapping_to_suggestion())
+
+    def test_turn_off_suggestions(self):
+        class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+            a = CharField(show_suggestions=False)
+            b = CharField()
+
+            @classmethod
+            def _get_raw_mapping(cls):
+                return ["c", "d"]
+
+            class Meta:
+                model = Model
+
+            fields_to_exclude_from_suggestions = ["d"]
+
+            show_suggestions = False
+
+        self.assertEqual({"a": False, "b": False, "c": False, "d": False}, MySearchSet.get_mapping_to_suggestion())
