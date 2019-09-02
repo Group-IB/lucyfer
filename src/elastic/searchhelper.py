@@ -19,7 +19,7 @@ class ElasticSearchHelperMixin(SearchHelperMixin):
     @classmethod
     def _get_raw_mapping(cls) -> list:
         model_instance = cls.Meta.model()
-        mapping = model_instance.get_es_client().indices.get_mapping(index=model_instance._get_index())
+        mapping = cls.Meta.model._get_es_client().indices.get_mapping(index=model_instance._get_index())
         if not mapping:
             return []
         last_index = max(mapping.keys())
