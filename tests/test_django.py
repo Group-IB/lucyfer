@@ -278,10 +278,11 @@ class TestSearchHelpers(TestCase):
         self.assertEqual({"a": False, "b": False, "c": False, "d": False}, MySearchSet.get_mapping_to_suggestion())
 
     def test_get_available_values(self):
-        expected_available_values = ['ululu', "xxxx"]
+        def expected_available_values():
+            return ['ululu', "xxxx"]
 
         class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
-            a = CharField(available_values=expected_available_values)
+            a = CharField(get_available_values_method=expected_available_values)
             b = BooleanField()
 
             @classmethod
@@ -292,4 +293,4 @@ class TestSearchHelpers(TestCase):
                 model = Model
 
         self.assertEqual(['ululu', "xxxx"], MySearchSet.get_fields_values(qs=Model.objects, field_name="a"))
-        self.assertEqual([True, False], MySearchSet.get_fields_values(qs=Model.objects, field_name="b"))
+        self.assertEqual(['true', 'false'], list(MySearchSet.get_fields_values(qs=Model.objects, field_name="b")))
