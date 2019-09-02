@@ -10,12 +10,12 @@ class BaseSearchField:
 
     DEFAULT_LOOKUP: str
     OPERATOR_TO_LOOKUP: Dict[Operator, str] = dict()
-    _default_available_values = None
+    _default_get_available_values_method = None
 
     def __init__(self, sources=None,
                  exclude_sources_from_mapping=False,
                  show_suggestions=True,
-                 available_values=None,
+                 get_available_values_method=None,
                  *args, **kwargs):
 
         sources = list() if sources is None else sources
@@ -23,7 +23,7 @@ class BaseSearchField:
 
         self.exclude_sources_from_mapping = exclude_sources_from_mapping
         self.show_suggestions = show_suggestions
-        self._available_values = available_values
+        self._get_available_values_method = get_available_values_method
 
     def cast_value(self, value: str):
         """
@@ -55,8 +55,8 @@ class BaseSearchField:
         """
         return value == "*"
 
-    def get_available_values(self):
-        return self._available_values or self._default_available_values
+    def get_available_values_method(self):
+        return self._get_available_values_method or self._default_get_available_values_method
 
 
 def negate_query_if_necessary(func):

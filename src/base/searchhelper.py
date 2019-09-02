@@ -72,19 +72,21 @@ class SearchHelperMixin:
 
         # create mapping values from fields in searchset class
         for field_name, field in cls.get_field_name_to_field().items():
-            available_values = field.get_available_values()
+
+            get_available_values_method = field.get_available_values_method()
+
             if field_name not in mapping_exclude:
                 mapping.add_value(name=field_name,
                                   sources=field.sources,
                                   show_suggestions=(cls.show_suggestions and field.show_suggestions
                                                     and field_name not in suggestions_exclude),
-                                  available_values=available_values)
+                                  get_available_values_method=get_available_values_method)
 
             if not field.exclude_sources_from_mapping:
                 for source in field.sources:
                     mapping.add_value(name=source,
                                       show_suggestions=cls.show_suggestions and source not in suggestions_exclude,
-                                      available_values=available_values)
+                                      get_available_values_method=get_available_values_method)
 
         # update mapping from mapping in database/elastic/etc
         raw_mapping = cls.get_raw_mapping()

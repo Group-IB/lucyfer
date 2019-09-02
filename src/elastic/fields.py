@@ -85,7 +85,7 @@ class BooleanField(ElasticSearchField):
     }
 
     _values = {"true": True, "false": False}
-    _default_available_values = list(_values.keys())
+    _default_get_available_values_method = _values.keys
 
     def cast_value(self, value):
         value = value.lower()
@@ -97,4 +97,4 @@ class BooleanField(ElasticSearchField):
 
 class NullBooleanField(BooleanField):
     _values = {"true": True, "false": False, "null": None}
-    _default_available_values = list(_values.keys())
+    _default_get_available_values_method = _values.keys
