@@ -276,3 +276,20 @@ class TestSearchHelpers(TestCase):
             show_suggestions = False
 
         self.assertEqual({"a": False, "b": False, "c": False, "d": False}, MySearchSet.get_mapping_to_suggestion())
+
+    def test_get_available_values(self):
+        expected_available_values = ['ululu', "xxxx"]
+
+        class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+            a = CharField(available_values=expected_available_values)
+            b = BooleanField()
+
+            @classmethod
+            def _get_raw_mapping(cls):
+                return ["c", "d"]
+
+            class Meta:
+                model = Model
+
+        self.assertEqual(['ululu', "xxxx"], MySearchSet.get_fields_values(qs=Model.objects, field_name="a"))
+        self.assertEqual([True, False], MySearchSet.get_fields_values(qs=Model.objects, field_name="b"))

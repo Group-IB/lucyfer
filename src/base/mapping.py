@@ -13,14 +13,18 @@ class MappingValue:
     _max_cached_values_by_prefix = 10
     _cache_values_min_length = 3
 
-    def __init__(self, name: str, sources=None, show_suggestions=True):
+    def __init__(self, name: str, sources=None, show_suggestions=True, available_values=None):
         self.name = name
         self.sources = sources if sources else [name]
         self.show_suggestions = show_suggestions
+        self.available_values = available_values
 
     def get_values(self, qs, prefix='', cache_key=None) -> List[str]:
         if not self.show_suggestions:
             return list()
+
+        if self.available_values is not None:
+            return self.available_values
 
         if self._cached_values is None:
             self._cached_values = defaultdict(dict)
@@ -50,11 +54,12 @@ class Mapping(OrderedDict):
         self.model = model
         super().__init__(*args, **kwargs)
 
-    def add_value(self, name: str, sources=None, show_suggestions=True):
+    def add_value(self, name: str, sources=None, show_suggestions=True, available_values=None):
         if name not in self:
             self.update({name: self._value_class(name=name,
                                                  sources=sources,
                                                  show_suggestions=show_suggestions,
+                                                 available_values=available_values,
                                                  )})
 
     def get_values(self, qs, field_name: str, prefix: str, cache_key="DEFAULT_KEY") -> List[str]:
