@@ -1,4 +1,5 @@
 from collections import OrderedDict, defaultdict
+from itertools import islice
 from typing import Type, Dict, List, Optional
 
 
@@ -23,20 +24,28 @@ class MappingValue:
         if not self.show_suggestions:
             return list()
 
-        if self.available_values is not None:
-            return self.available_values
-
         if self._cached_values is None:
             self._cached_values = defaultdict(dict)
 
-        if len(prefix) < self._cache_values_min_length:
-            result = self._get_values(qs, prefix)
-        else:
-            if not self._cached_values[cache_key].get(prefix):
-                self._cached_values[cache_key][prefix] = self._get_values(qs, prefix)[:self._max_cached_values_by_prefix]
-            result = self._cached_values[cache_key][prefix]
+        if not self._cached_values[cache_key].get(prefix):
+            values = self._get_available_values(qs=qs, prefix=prefix)
 
-        return result
+            if len(prefix) < self._cache_values_min_length:
+                return values
+
+            self._cached_values[cache_key][prefix] = values
+
+        return self._cached_values[cache_key][prefix]
+
+    def _get_available_values(self, qs, prefix):
+        available_values = self.available_values
+
+        if available_values is not None:
+            values = (v for v in available_values if prefix in v)
+        else:
+            values = self._get_values(qs, prefix)
+
+        return list(islice(values, self._max_cached_values_by_prefix))
 
     def _get_values(self, qs, prefix: str) -> List[str]:
         raise NotImplementedError()
