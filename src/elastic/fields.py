@@ -9,21 +9,34 @@ class ElasticSearchField(BaseSearchField):
     DEFAULT_LOOKUP = "term"
 
     OPERATOR_TO_LOOKUP = {
-        Operator.EQ: "term",
-        Operator.NEQ: "term",
+        Operator.EQ: DEFAULT_LOOKUP,
+        Operator.NEQ: DEFAULT_LOOKUP,
+        Operator.GT: "gt",
+        Operator.LT: "lt",
+        Operator.GTE: "gte",
+        Operator.LTE: "lte"
     }
 
     def create_query_for_sources(self, condition):
+        from elasticsearch_dsl.query import Range
+
         query = None  # if set Q() as default it will be MatchAll() anytime
 
         lookup = self.get_lookup(condition.operator)
         value = self.cast_value(condition.value)
 
-        for source in self.get_sources(condition.name):
-            if query is None:
-                query = Q(lookup, **{source: value})
-            else:
-                query = query | Q(lookup, **{source: value})
+        if lookup == self.DEFAULT_LOOKUP:
+            for source in self.get_sources(condition.name):
+                if query is None:
+                    query = Q(lookup, **{source: value})
+                else:
+                    query = query | Q(lookup, **{source: value})
+        else:
+            for source in self.get_sources(condition.name):
+                if query is None:
+                    query = Range(**{source: {lookup: value}})
+                else:
+                    query = query | Range(**{source: {lookup: value}})
         return query
 
     @negate_query_if_necessary
