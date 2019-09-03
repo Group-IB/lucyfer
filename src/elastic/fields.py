@@ -31,6 +31,8 @@ class ElasticSearchField(BaseSearchField):
     def _get_query_for_term(self, sources, lookup, value):
         query = None  # if set Q() as default it will be MatchAll() anytime
 
+        lookup = self._get_wildcard_or_lookup(value=value, lookup=lookup)
+
         for source in sources:
             if query is None:
                 query = Q(lookup, **{source: value})
@@ -47,6 +49,9 @@ class ElasticSearchField(BaseSearchField):
                 query = query | Range(**{source: {lookup: value}})
         return query
 
+    def _get_wildcard_or_lookup(self, value, lookup):
+        return "wildcard" if "*" in value else lookup
+
     @negate_query_if_necessary
     def get_query(self, condition):
         if self.match_all(value=condition.value):
@@ -55,7 +60,12 @@ class ElasticSearchField(BaseSearchField):
         return self.create_query_for_sources(condition=condition)
 
 
-class IntegerField(ElasticSearchField):
+class ElasticSearchFieldWithoutWildCard(ElasticSearchField):
+    def _get_wildcard_or_lookup(self, value, lookup):
+        return lookup
+
+
+class IntegerField(ElasticSearchFieldWithoutWildCard):
     def cast_value(self, value):
         try:
             return int(value)
@@ -63,7 +73,7 @@ class IntegerField(ElasticSearchField):
             raise LuceneSearchCastValueException()
 
 
-class FloatField(ElasticSearchField):
+class FloatField(ElasticSearchFieldWithoutWildCard):
     def cast_value(self, value):
         try:
             return float(value)
@@ -71,7 +81,7 @@ class FloatField(ElasticSearchField):
             raise LuceneSearchCastValueException()
 
 
-class BooleanField(ElasticSearchField):
+class BooleanField(ElasticSearchFieldWithoutWildCard):
     DEFAULT_LOOKUP = "match"
 
     OPERATOR_TO_LOOKUP = {

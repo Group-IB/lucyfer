@@ -10,7 +10,4 @@ class ElasticSearchSet(LuceneToElasticParserMixin, BaseSearchSet):
     @classmethod
     def filter(cls, search, search_terms):
         query = cls.parse(raw_expression=search_terms)
-        if query is None:
-            return None
-        else:
-            return search.query(query)
+        return None if query is None else search.query(query)
