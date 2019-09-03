@@ -1,7 +1,7 @@
 from elasticsearch_dsl import Q
 from parameterized import parameterized
 
-from src.elastic.fields import ElasticSearchField, RangeOrMatchField, IntegerField, FloatField, BooleanField, \
+from src.elastic.fields import ElasticSearchField, IntegerField, FloatField, BooleanField, \
     NullBooleanField
 from src.elastic.searchset import ElasticSearchSet
 
@@ -11,7 +11,6 @@ from tests.utils import compare_dicts, Panic
 
 class MyElasticSearchSet(ElasticSearchSet):
     field = ElasticSearchField()
-    range_or_match = RangeOrMatchField()
     field_with_source = ElasticSearchField(sources=["source"])
     field_with_several_sources = ElasticSearchField(sources=["source1", "source2"])
 
@@ -39,16 +38,6 @@ class TestLuceneToDjangoParsing(TestParsing):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
 
     @parameterized.expand((
-            (Q("range", **{"range_or_match": {"gt": "value"}}), ["range_or_match > value", ]),
-            (Q("range", **{"range_or_match": {"gte": "value"}}), ["range_or_match   >= value", ]),
-            (Q("range", **{"range_or_match": {"lt": "value"}}), ["range_or_match < value", ]),
-            (Q("range", **{"range_or_match": {"lte": "value"}}), ["range_or_match    <= value", ]),
-            (Q("match", **{"range_or_match": "value"}), ["range_or_match   : value", ]),
-    ))
-    def test_range_or_match_values(self, expected_query, raw_expressions):
-        self._check_rules(rules=raw_expressions, expected_query=expected_query)
-
-    @parameterized.expand((
             (Q("term", **{"source": "value"}), ["field_with_source: value", ]),
             (
                     Q("term", **{"source2": "value"}) | Q("term", **{"source1": "value"}),
@@ -60,9 +49,8 @@ class TestLuceneToDjangoParsing(TestParsing):
 
     @parameterized.expand((
             (~Q("term", **{"field": "value"}), ["field! value", "field ! value"]),
-            (~Q("match", **{"range_or_match": "value"}), ["range_or_match ! value"]),
-            (~Q("match", **{"int_field": 1}), ["int_field ! 1"]),
-            (~Q("match", **{"float_field": 1.5}), ["float_field ! 1.5"]),
+            (~Q("term", **{"int_field": 1}), ["int_field ! 1"]),
+            (~Q("term", **{"float_field": 1.5}), ["float_field ! 1.5"]),
             (~Q("match", **{"boolean_field": True}), ["boolean_field ! true"]),
             (~Q("match", **{"null_boolean_field": True}), ["null_boolean_field ! true"]),
     ))
