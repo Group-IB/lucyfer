@@ -1,4 +1,5 @@
-from elasticsearch_dsl import Q, Range
+from elasticsearch_dsl import Q
+from elasticsearch_dsl.query import Range
 from lucyparser.tree import Operator
 
 from ..base.fields import BaseSearchField, negate_query_if_necessary
