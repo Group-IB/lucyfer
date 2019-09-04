@@ -11,6 +11,7 @@ class SearchHelperMixin:
     fields_to_exclude_from_mapping: Optional[List[str]] = None
     fields_to_exclude_from_suggestions: Optional[List[str]] = None
     show_suggestions = True
+    escape_quotes_in_suggestions = True
 
     _mapping_class = None
 
@@ -80,13 +81,15 @@ class SearchHelperMixin:
                                   sources=field.sources,
                                   show_suggestions=(cls.show_suggestions and field.show_suggestions
                                                     and field_name not in suggestions_exclude),
-                                  get_available_values_method=get_available_values_method)
+                                  get_available_values_method=get_available_values_method,
+                                  escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions)
 
             if not field.exclude_sources_from_mapping:
                 for source in field.sources:
                     mapping.add_value(name=source,
                                       show_suggestions=cls.show_suggestions and source not in suggestions_exclude,
-                                      get_available_values_method=get_available_values_method)
+                                      get_available_values_method=get_available_values_method,
+                                      escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions)
 
         # update mapping from mapping in database/elastic/etc
         raw_mapping = cls.get_raw_mapping()
@@ -94,7 +97,8 @@ class SearchHelperMixin:
         for name in raw_mapping:
             if name not in mapping_exclude:
                 mapping.add_value(name=name,
-                                  show_suggestions=cls.show_suggestions and name not in suggestions_exclude)
+                                  show_suggestions=cls.show_suggestions and name not in suggestions_exclude,
+                                  escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions)
 
         cls._full_mapping = mapping
 
