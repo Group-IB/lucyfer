@@ -14,11 +14,13 @@ class MappingValue:
     _max_cached_values_by_prefix = 10
     _cache_values_min_length = 3
 
-    def __init__(self, name: str, sources=None, show_suggestions=True, get_available_values_method=None):
+    def __init__(self, name: str, sources=None, show_suggestions=True, get_available_values_method=None,
+                 escape_quotes_in_suggestions=True):
         self.name = name
         self.sources = sources if sources else [name]
         self.show_suggestions = show_suggestions
         self.get_available_values_method = get_available_values_method
+        self.escape_quotes_in_suggestions = escape_quotes_in_suggestions
 
     def get_values(self, qs, prefix='', cache_key=None) -> List[str]:
         if not self.show_suggestions:
@@ -29,6 +31,9 @@ class MappingValue:
 
         if not self._cached_values[cache_key].get(prefix):
             values = self._get_available_values(qs=qs, prefix=prefix)
+
+            if self.escape_quotes_in_suggestions:
+                values = [v.replace("'", "\\'").replace('"', '\\"') for v in values]
 
             if len(prefix) < self._cache_values_min_length:
                 return values
@@ -62,12 +67,14 @@ class Mapping(OrderedDict):
         self.model = model
         super().__init__(*args, **kwargs)
 
-    def add_value(self, name: str, sources=None, show_suggestions=True, get_available_values_method=None):
+    def add_value(self, name: str, sources=None, show_suggestions=True, get_available_values_method=None,
+                  escape_quotes_in_suggestions=True):
         if name not in self:
             self.update({name: self._value_class(name=name,
                                                  sources=sources,
                                                  show_suggestions=show_suggestions,
                                                  get_available_values_method=get_available_values_method,
+                                                 escape_quotes_in_suggestions=escape_quotes_in_suggestions
                                                  )})
 
     def get_values(self, qs, field_name: str, prefix: str, cache_key="DEFAULT_KEY") -> List[str]:

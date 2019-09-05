@@ -231,17 +231,10 @@ class TestSearchHelpers(TestCase):
 
         self.assertEqual(list(), MySearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
 
-        class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+        class MyNewSearchSet(MySearchSet):
             a = CharField(show_suggestions=False)
 
-            @classmethod
-            def _get_raw_mapping(cls):
-                return list()
-
-            class Meta:
-                model = Model
-
-        self.assertEqual(list(), MySearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
+        self.assertEqual(list(), MyNewSearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
 
     def test_get_mapping_with_suggestion_option(self):
         class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
@@ -294,3 +287,37 @@ class TestSearchHelpers(TestCase):
 
         self.assertEqual(['ululu', "xxxx"], MySearchSet.get_fields_values(qs=Model.objects, field_name="a"))
         self.assertEqual(['true', 'false'], list(MySearchSet.get_fields_values(qs=Model.objects, field_name="b")))
+
+    def test_escape_quotes(self):
+        not_escaped_available_a_values = ["xxx ' xxx", 'xxx " xxx']
+        escaped_available_a_values = ["xxx \\' xxx", 'xxx \\" xxx']
+
+        class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+            a = CharField(get_available_values_method=lambda *args: not_escaped_available_a_values)
+
+            @classmethod
+            def _get_raw_mapping(cls):
+                return list()
+
+            class Meta:
+                model = Model
+
+            escape_quotes_in_suggestions = True
+
+        self.assertEqual(escaped_available_a_values,
+                         MySearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
+
+        class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+            a = CharField(get_available_values_method=lambda *args: not_escaped_available_a_values)
+
+            @classmethod
+            def _get_raw_mapping(cls):
+                return list()
+
+            class Meta:
+                model = Model
+
+            escape_quotes_in_suggestions = False
+
+        self.assertEqual(not_escaped_available_a_values,
+                         MySearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
