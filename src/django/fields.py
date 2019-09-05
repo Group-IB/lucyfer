@@ -28,38 +28,30 @@ class DjangoSearchFieldWithoutWildcard(BaseSearchField):
 
 class DjangoSearchField(DjangoSearchFieldWithoutWildcard):
     def create_query_for_sources(self, condition):
-        wildcard_parts = self.cast_value(condition.value).split("*")
+        value = self.cast_value(condition.value)
 
-        parts_count = len(wildcard_parts)
-
-        if parts_count == 1:
+        if value.startswith("*") and value.endswith("*"):
+            lookup = "icontains"
+            value = value[1:-1]
+        elif value.startswith("*"):
+            lookup = "iendswith"
+            value = value[1:]
+        elif value.endswith("*"):
+            lookup = "istartswith"
+        else:
             return super().create_query_for_sources(condition)
 
-        source_to_query = {source: Q() for source in self.get_sources(condition.name)}
+        if not value:
+            return None
 
-        def update_query(lookup, value):
-            for source in source_to_query:
-                source_to_query[source] = source_to_query[source] & Q(**{"{}__{}".format(source, lookup): value})
+        sources = self.get_sources(condition.name)
 
-        for index, w_part in enumerate(wildcard_parts):
-            if w_part:
-                if index == 0:
-                    update_query(lookup="istartswith", value=w_part)
-                    continue
+        query = Q()
 
-                elif index == (parts_count - 1):
-                    update_query(lookup="iendswith", value=w_part)
-                    continue
+        for source in sources:
+            query = query | Q(**{"{}__{}".format(source, lookup): value})
 
-                else:
-                    update_query(lookup="icontains", value=w_part)
-                    continue
-
-        final_query = Q()
-        for query in source_to_query.values():
-            final_query = final_query & query
-
-        return final_query
+        return query
 
 
 class CharField(DjangoSearchField):

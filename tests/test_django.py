@@ -51,24 +51,21 @@ class TestLuceneToDjangoParsing(TestParsing):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
 
     @parameterized.expand(((Q(char_field__icontains="aaa_aaa"), ["char_field:   aaa_aaa"]),
-                           (Q(char_field__icontains="s.om.e-") & Q(char_field__iendswith="fancy_string?"),
-                            ["char_field:*s.om.e-*fancy_string?"]),
+                           (Q(char_field__iendswith="s.om.e-*fancy_string?"), ["char_field:*s.om.e-*fancy_string?"]),
                            ))
     def test_string_wo_quotes(self, expected_query, raw_expressions):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
 
     @parameterized.expand(((Q(char_field__icontains="aaa_aaa"), ['char_field:   "aaa_aaa"']),
                            (Q(char_field__icontains="spaces :    heeeeree"), ['char_field:   "spaces :    heeeeree"']),
-                           (Q(char_field__icontains="s.om.e-") & Q(char_field__iendswith="fancy_string?"),
-                            ['char_field:"*s.om.e-*fancy_string?"']),
+                           (Q(char_field__iendswith="s.om.e-*fancy_string?"), ['char_field:"*s.om.e-*fancy_string?"']),
                            ))
     def test_string_w_double_quotes(self, expected_query, raw_expressions):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
 
     @parameterized.expand(((Q(char_field__icontains="aaa_aaa"), ["char_field:   'aaa_aaa'"]),
                            (Q(char_field__icontains="spaces :    heeeeree"), ["char_field:   'spaces :    heeeeree'"]),
-                           (Q(char_field__icontains="s.om.e-") & Q(char_field__iendswith="fancy_string?"),
-                            ["char_field:'*s.om.e-*fancy_string?'"]),
+                           (Q(char_field__iendswith="s.om.e-*fancy_string?"), ["char_field:'*s.om.e-*fancy_string?'"]),
                            ))
     def test_string_w_single_quotes(self, expected_query, raw_expressions):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
