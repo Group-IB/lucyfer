@@ -1,53 +1,29 @@
 import setuptools
 
 
-class LibHelper:
-    LUSYA = "lusya"
-    LUCYFER = "lucyfer"
-
-    library_to_requirements_names = {
-        LUSYA: ['base', 'django'],
-        LUCYFER: ['base', 'django', 'elastic'],
-    }
-
-    library_to_description = {
-        LUSYA: "Lucene search for DRF",
-        LUCYFER: "Lucene search for DRF and elasticsearch-dsl",
-    }
-
-
-class SetupCommand:
+class LucyferSetup:
     _version = None
+    _dirs = ['base', 'django', 'elastic']
+
+    def setup(self):
+        setuptools.setup(**self._get_kwargs())
 
     @property
     def lib(self):
-        raise NotImplementedError()
+        return "lucyfer"
 
     @property
     def version(self):
         if self._version is None:
-            with open("src/setup/{}".format(self.lib)) as fp:
+            with open("src/setup/lucyfer") as fp:
                 self._version = fp.readline()
         return self._version
 
-    def setup(self):
-        kwargs = self._get_base_kwargs()
-
-        package_dir = self._get_package_dir()
-
-        kwargs.update(dict(
-            description=LibHelper.library_to_description[self.lib],
-            install_requires=self._get_requirements(),
-            name=self.lib,
-            packages=package_dir.keys(),
-            package_dir=package_dir,
-            version=self.version))
-
-        setuptools.setup(**kwargs)
-
-    def _get_base_kwargs(self):
+    def _get_kwargs(self):
         with open("README.md", "r") as fh:
             long_description = fh.read()
+
+        package_dir = self._get_package_dir()
 
         return dict(
             author="N Copiy",
@@ -59,18 +35,30 @@ class SetupCommand:
                 "Programming Language :: Python :: 3",
                 "License :: OSI Approved :: MIT License",
             ],
+            description="Lucene search for DRF and elasticsearch-dsl",
+            tests_require=self._get_requirements(name="test"),
+            install_requires=self._get_requirements(name="base"),
+            extras_require=dict(full=self._get_requirements(name="extra")),
+            name=self.lib,
+            packages=package_dir.keys(),
+            package_dir=package_dir,
+            version=self.version
         )
 
     def _get_package_dir(self):
-        included_dirs = ["{}/" + req for req in LibHelper.library_to_requirements_names[self.lib]] + ["{}"]
+        included_dirs = ["{}/" + req for req in self._dirs] + ["{}"]
         return {_dir.format(self.lib): _dir.format("src") for _dir in included_dirs}
 
-    def _get_requirements(self):
+    def _get_requirements(self, name):
         requirements = []
 
-        for req_name in LibHelper.library_to_requirements_names[self.lib]:
-            with open("requirements/{}.txt".format(req_name), "r") as fh:
-                req = fh.readlines()
-            requirements.extend((r for r in req if r != "\n"))
+        with open("requirements/{}.txt".format(name), "r") as fh:
+            req = fh.readlines()
+        requirements.extend((r for r in req if r != "\n"))
 
         return requirements
+
+
+if __name__ == "__main__":
+    parser = LucyferSetup()
+    parser.setup()
