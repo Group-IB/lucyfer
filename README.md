@@ -8,18 +8,18 @@ _________________
 Only for Django with DRF:
 
 ```
-pip install lusya
+pip install lucyfer
 ```
 
 For Django with DRF and Elasticsearch-dsl with DRF:
 
 ```
-pip install lucyfer
+pip install lucyfer[full]
 ```
 
 ## Dependencies
 
-|                           | lucyfer | lusya |
+|                           | lucyfer | lucyfer[full] |
 |---------------------------|---------|-------|
 | lucyparser                | +       | +     |
 | Django                    | +       | +     |
@@ -28,9 +28,7 @@ pip install lucyfer
 | elasticsearch-dsl         | +       | -     |
 
 
-## Usage Example
-
-#### All examples illustrates `lucyfer` library usage. In `lusya` case anything is the same except of base classes.  
+## Usage Example  
 ________________
 Create your search backend class:
 

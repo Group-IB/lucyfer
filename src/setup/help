@@ -1,2 +1,2 @@
-python3 src/setup/lucyfer.py sdist bdist_wheel
+python3 src/setup/setup.py sdist bdist_wheel
 python3 -m twine upload dist/*
