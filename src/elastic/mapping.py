@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import List
 
 from ..base.mapping import MappingValue, Mapping
@@ -9,10 +10,10 @@ class ElasticMappingValue(MappingValue):
         for source in self.sources:
             search.aggs.bucket(source, "terms", field=source)
 
-        aggs = search.execute().to_dict()["aggregations"]
+        aggs = search.execute().to_dict().get("aggregations", defaultdict(dict))
         result = []
         for source in self.sources:
-            if aggs[source]["buckets"]:
+            if aggs[source].get("buckets"):
                 result.extend(
                     [val for val
                      in [str(val["key"]) for val in aggs[source]["buckets"]]
