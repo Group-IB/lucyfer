@@ -1,3 +1,5 @@
+import warnings
+
 from django.db.models import Q
 from lucyparser.tree import Operator
 
@@ -54,14 +56,14 @@ class DjangoSearchField(DjangoSearchFieldWithoutWildcard):
         return query
 
 
-class CharField(DjangoSearchField):
+class DjangoCharField(DjangoSearchField):
     OPERATOR_TO_LOOKUP = {
         Operator.EQ: "icontains",
         Operator.NEQ: "iexact",
     }
 
 
-class NumberField(DjangoSearchFieldWithoutWildcard):
+class DjangoNumberField(DjangoSearchFieldWithoutWildcard):
     OPERATOR_TO_LOOKUP = {
         Operator.GTE: "gte",
         Operator.LTE: "lte",
@@ -72,7 +74,7 @@ class NumberField(DjangoSearchFieldWithoutWildcard):
     }
 
 
-class IntegerField(NumberField):
+class DjangoIntegerField(DjangoNumberField):
     def cast_value(self, value):
         try:
             return int(value)
@@ -80,7 +82,7 @@ class IntegerField(NumberField):
             raise LuceneSearchCastValueException()
 
 
-class FloatField(NumberField):
+class DjangoFloatField(DjangoNumberField):
     def cast_value(self, value):
         try:
             return float(value)
@@ -88,7 +90,7 @@ class FloatField(NumberField):
             raise LuceneSearchCastValueException()
 
 
-class BooleanField(DjangoSearchFieldWithoutWildcard):
+class DjangoBooleanField(DjangoSearchFieldWithoutWildcard):
     OPERATOR_TO_LOOKUP = {
         Operator.EQ: "exact",
         Operator.NEQ: "exact",
@@ -105,6 +107,54 @@ class BooleanField(DjangoSearchFieldWithoutWildcard):
         raise LuceneSearchCastValueException()
 
 
-class NullBooleanField(BooleanField):
+class DjangoNullBooleanField(DjangoBooleanField):
     _values = {"true": True, "false": False, "null": None}
     _default_get_available_values_method = _values.keys
+
+
+def CharField(*args, **kwargs):
+    warnings.warn(
+        "Usage CharField will be deprecated in version 0.2.0, use DjangoCharField import instead",
+        DeprecationWarning
+    )
+    return DjangoCharField(*args, **kwargs)
+
+
+def NumberField(*args, **kwargs):
+    warnings.warn(
+        "Usage NumberField will be deprecated in version 0.2.0, use DjangoNumberField import instead",
+        DeprecationWarning
+    )
+    return DjangoNumberField(*args, **kwargs)
+
+
+def IntegerField(*args, **kwargs):
+    warnings.warn(
+        "Usage IntegerField will be deprecated in version 0.2.0, use DjangoIntegerField import instead",
+        DeprecationWarning
+    )
+    return DjangoIntegerField(*args, **kwargs)
+
+
+def FloatField(*args, **kwargs):
+    warnings.warn(
+        "Usage FloatField will be deprecated in version 0.2.0, use DjangoFloatField import instead",
+        DeprecationWarning
+    )
+    return DjangoFloatField(*args, **kwargs)
+
+
+def BooleanField(*args, **kwargs):
+    warnings.warn(
+        "Usage BooleanField will be deprecated in version 0.2.0, use DjangoBooleanField import instead",
+        DeprecationWarning
+    )
+    return DjangoBooleanField(*args, **kwargs)
+
+
+def NullBooleanField(*args, **kwargs):
+    warnings.warn(
+        "Usage NullBooleanField will be deprecated in version 0.2.0, use DjangoNullBooleanField import instead",
+        DeprecationWarning
+    )
+    return DjangoNullBooleanField(*args, **kwargs)

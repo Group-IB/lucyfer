@@ -1,3 +1,5 @@
+import warnings
+
 from elasticsearch_dsl import Q
 from elasticsearch_dsl.query import Range
 from lucyparser.tree import Operator
@@ -65,7 +67,7 @@ class ElasticSearchFieldWithoutWildCard(ElasticSearchField):
         return lookup
 
 
-class IntegerField(ElasticSearchFieldWithoutWildCard):
+class ElasticIntegerField(ElasticSearchFieldWithoutWildCard):
     def cast_value(self, value):
         try:
             return int(value)
@@ -73,7 +75,7 @@ class IntegerField(ElasticSearchFieldWithoutWildCard):
             raise LuceneSearchCastValueException()
 
 
-class FloatField(ElasticSearchFieldWithoutWildCard):
+class ElasticFloatField(ElasticSearchFieldWithoutWildCard):
     def cast_value(self, value):
         try:
             return float(value)
@@ -81,7 +83,7 @@ class FloatField(ElasticSearchFieldWithoutWildCard):
             raise LuceneSearchCastValueException()
 
 
-class BooleanField(ElasticSearchFieldWithoutWildCard):
+class ElasticBooleanField(ElasticSearchFieldWithoutWildCard):
     DEFAULT_LOOKUP = "match"
 
     OPERATOR_TO_LOOKUP = {
@@ -109,6 +111,38 @@ class BooleanField(ElasticSearchFieldWithoutWildCard):
         raise LuceneSearchCastValueException()
 
 
-class NullBooleanField(BooleanField):
+class ElasticNullBooleanField(ElasticBooleanField):
     _values = {"true": True, "false": False, "null": None}
     _default_get_available_values_method = _values.keys
+
+
+def IntegerField(*args, **kwargs):
+    warnings.warn(
+        "Usage IntegerField will be deprecated in version 0.2.0, use ElasticIntegerField import instead",
+        DeprecationWarning
+    )
+    return ElasticIntegerField(*args, **kwargs)
+
+
+def FloatField(*args, **kwargs):
+    warnings.warn(
+        "Usage FloatField will be deprecated in version 0.2.0, use ElasticFloatField import instead",
+        DeprecationWarning
+    )
+    return ElasticFloatField(*args, **kwargs)
+
+
+def BooleanField(*args, **kwargs):
+    warnings.warn(
+        "Usage BooleanField will be deprecated in version 0.2.0, use ElasticBooleanField import instead",
+        DeprecationWarning
+    )
+    return ElasticBooleanField(*args, **kwargs)
+
+
+def NullBooleanField(*args, **kwargs):
+    warnings.warn(
+        "Usage NullBooleanField will be deprecated in version 0.2.0, use ElasticNullBooleanField import instead",
+        DeprecationWarning
+    )
+    return ElasticNullBooleanField(*args, **kwargs)
