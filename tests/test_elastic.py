@@ -1,9 +1,9 @@
 from elasticsearch_dsl import Q
 from parameterized import parameterized
 
-from src.searchset.fields.elastic import ElasticSearchField, ElasticIntegerField, ElasticFloatField, \
-    ElasticBooleanField, ElasticNullBooleanField
 from src.searchset import ElasticSearchSet
+from src.searchset.fields import ElasticSearchField, ElasticIntegerField, ElasticFloatField, \
+    ElasticBooleanField, ElasticNullBooleanField
 
 from tests.base import TestParsing
 from tests.utils import compare_dicts, Panic

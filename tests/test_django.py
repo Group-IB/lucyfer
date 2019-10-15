@@ -3,9 +3,9 @@ from unittest import TestCase, mock
 from django.db.models import Q
 from parameterized import parameterized
 
-from src.searchset.fields.django import DjangoCharField, DjangoIntegerField, DjangoFloatField, DjangoBooleanField
-from src.searchset.searchhelper import DjangoSearchHelperMixin
 from src.searchset import DjangoSearchSet
+from src.searchset.fields import DjangoCharField, DjangoIntegerField, DjangoFloatField, DjangoBooleanField
+from src.searchset.searchhelper import DjangoSearchHelperMixin
 from tests.base import TestParsing
 
 

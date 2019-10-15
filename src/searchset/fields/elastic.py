@@ -1,5 +1,3 @@
-import warnings
-
 from elasticsearch_dsl import Q
 from elasticsearch_dsl.query import Range
 from lucyparser.tree import Operator
@@ -114,35 +112,3 @@ class ElasticBooleanField(ElasticSearchFieldWithoutWildCard):
 class ElasticNullBooleanField(ElasticBooleanField):
     _values = {"true": True, "false": False, "null": None}
     _default_get_available_values_method = _values.keys
-
-
-def IntegerField(*args, **kwargs):
-    warnings.warn(
-        "Usage IntegerField will be deprecated in version 0.2.0, use ElasticIntegerField import instead",
-        DeprecationWarning
-    )
-    return ElasticIntegerField(*args, **kwargs)
-
-
-def FloatField(*args, **kwargs):
-    warnings.warn(
-        "Usage FloatField will be deprecated in version 0.2.0, use ElasticFloatField import instead",
-        DeprecationWarning
-    )
-    return ElasticFloatField(*args, **kwargs)
-
-
-def BooleanField(*args, **kwargs):
-    warnings.warn(
-        "Usage BooleanField will be deprecated in version 0.2.0, use ElasticBooleanField import instead",
-        DeprecationWarning
-    )
-    return ElasticBooleanField(*args, **kwargs)
-
-
-def NullBooleanField(*args, **kwargs):
-    warnings.warn(
-        "Usage NullBooleanField will be deprecated in version 0.2.0, use ElasticNullBooleanField import instead",
-        DeprecationWarning
-    )
-    return ElasticNullBooleanField(*args, **kwargs)

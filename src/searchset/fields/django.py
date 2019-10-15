@@ -1,5 +1,3 @@
-import warnings
-
 from django.db.models import Q
 from lucyparser.tree import Operator
 
@@ -110,51 +108,3 @@ class DjangoBooleanField(DjangoSearchFieldWithoutWildcard):
 class DjangoNullBooleanField(DjangoBooleanField):
     _values = {"true": True, "false": False, "null": None}
     _default_get_available_values_method = _values.keys
-
-
-def CharField(*args, **kwargs):
-    warnings.warn(
-        "Usage CharField will be deprecated in version 0.2.0, use DjangoCharField import instead",
-        DeprecationWarning
-    )
-    return DjangoCharField(*args, **kwargs)
-
-
-def NumberField(*args, **kwargs):
-    warnings.warn(
-        "Usage NumberField will be deprecated in version 0.2.0, use DjangoNumberField import instead",
-        DeprecationWarning
-    )
-    return DjangoNumberField(*args, **kwargs)
-
-
-def IntegerField(*args, **kwargs):
-    warnings.warn(
-        "Usage IntegerField will be deprecated in version 0.2.0, use DjangoIntegerField import instead",
-        DeprecationWarning
-    )
-    return DjangoIntegerField(*args, **kwargs)
-
-
-def FloatField(*args, **kwargs):
-    warnings.warn(
-        "Usage FloatField will be deprecated in version 0.2.0, use DjangoFloatField import instead",
-        DeprecationWarning
-    )
-    return DjangoFloatField(*args, **kwargs)
-
-
-def BooleanField(*args, **kwargs):
-    warnings.warn(
-        "Usage BooleanField will be deprecated in version 0.2.0, use DjangoBooleanField import instead",
-        DeprecationWarning
-    )
-    return DjangoBooleanField(*args, **kwargs)
-
-
-def NullBooleanField(*args, **kwargs):
-    warnings.warn(
-        "Usage NullBooleanField will be deprecated in version 0.2.0, use DjangoNullBooleanField import instead",
-        DeprecationWarning
-    )
-    return DjangoNullBooleanField(*args, **kwargs)
