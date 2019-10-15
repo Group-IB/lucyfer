@@ -5,7 +5,6 @@ from parameterized import parameterized
 
 from src.searchset import DjangoSearchSet
 from src.searchset.fields import DjangoCharField, DjangoIntegerField, DjangoFloatField, DjangoBooleanField
-from src.searchset.searchhelper import DjangoSearchHelperMixin
 from tests.base import TestParsing
 
 
@@ -128,7 +127,7 @@ class TestLuceneToDjangoParsing(TestParsing):
 
 class TestMapping(TestCase):
     def test_not_excluding_any_fields(self):
-        class NotExcludingFieldsSearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+        class NotExcludingFieldsSearchSet(DjangoSearchSet):
             a = DjangoCharField()
             b = DjangoFloatField(sources=["c"])
 
@@ -143,7 +142,7 @@ class TestMapping(TestCase):
         self.assertSequenceEqual(list(mapping), ["a", "b", "c"])
 
     def test_exclude_fields_in_searchset_class(self):
-        class ExcludeFieldsInClassSearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+        class ExcludeFieldsInClassSearchSet(DjangoSearchSet):
             a = DjangoCharField()
             b = DjangoFloatField(sources=["c"])
 
@@ -160,7 +159,7 @@ class TestMapping(TestCase):
         self.assertSequenceEqual(list(mapping), ["a", "c"])
 
     def test_exclude_sources_in_field(self):
-        class ExcludeSourcesInFieldsSearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+        class ExcludeSourcesInFieldsSearchSet(DjangoSearchSet):
             a = DjangoCharField()
             b = DjangoFloatField(sources=["c"], exclude_sources_from_mapping=True)
 
@@ -194,7 +193,7 @@ class TestSearchHelpers(TestCase):
     django_mapping_get_values = "src.searchset.mapping.DjangoMappingValue._get_values"
 
     def test_get_fields_values(self):
-        class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+        class MySearchSet(DjangoSearchSet):
             a = DjangoCharField()
 
             @classmethod
@@ -214,7 +213,7 @@ class TestSearchHelpers(TestCase):
                                                                                    prefix="", cache_key="x")))
 
     def test_show_suggestions(self):
-        class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+        class MySearchSet(DjangoSearchSet):
             a = DjangoCharField()
 
             @classmethod
@@ -234,7 +233,7 @@ class TestSearchHelpers(TestCase):
         self.assertEqual(list(), MyNewSearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
 
     def test_get_mapping_with_suggestion_option(self):
-        class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+        class MySearchSet(DjangoSearchSet):
             a = DjangoCharField(show_suggestions=False)
             b = DjangoCharField()
 
@@ -250,7 +249,7 @@ class TestSearchHelpers(TestCase):
         self.assertEqual({"a": False, "b": True, "c": True, "d": False}, MySearchSet.get_mapping_to_suggestion())
 
     def test_turn_off_suggestions(self):
-        class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+        class MySearchSet(DjangoSearchSet):
             a = DjangoCharField(show_suggestions=False)
             b = DjangoCharField()
 
@@ -271,7 +270,7 @@ class TestSearchHelpers(TestCase):
         def expected_available_values():
             return ['ululu', "xxxx"]
 
-        class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+        class MySearchSet(DjangoSearchSet):
             a = DjangoCharField(get_available_values_method=expected_available_values)
             b = DjangoBooleanField()
 
@@ -289,7 +288,7 @@ class TestSearchHelpers(TestCase):
         not_escaped_available_a_values = ["xxx ' xxx", 'xxx " xxx']
         escaped_available_a_values = ["xxx \\' xxx", 'xxx \\" xxx']
 
-        class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+        class MySearchSet(DjangoSearchSet):
             a = DjangoCharField(get_available_values_method=lambda *args: not_escaped_available_a_values)
 
             @classmethod
@@ -304,7 +303,7 @@ class TestSearchHelpers(TestCase):
         self.assertEqual(escaped_available_a_values,
                          MySearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
 
-        class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+        class MySearchSet(DjangoSearchSet):
             a = DjangoCharField(get_available_values_method=lambda *args: not_escaped_available_a_values)
 
             @classmethod

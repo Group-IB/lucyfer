@@ -1,14 +1,6 @@
-import warnings
-
 from typing import List, Optional, Dict
 
-from ...searchset.mapping import Mapping
-
-
-warnings.warn(
-    "SearchHelperMixin will be included in BaseSearchSet in 0.2.5",
-    DeprecationWarning
-)
+from ..searchset.mapping import Mapping
 
 
 class SearchHelperMixin:
