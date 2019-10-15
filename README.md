@@ -33,9 +33,7 @@ ________________
 Create your search backend class:
 
 ```python
-from lucyfer.base.backend import LuceneSearchFilter
-from lucyfer.django.backend import DjangoLuceneSearchFilterMixin
-from lucyfer.elastic.backend import ElasticLuceneSearchFilterMixin
+from lucyfer.backend import LuceneSearchFilter, DjangoLuceneSearchFilterMixin, ElasticLuceneSearchFilterMixin
 
 
 class SearchBackend(DjangoLuceneSearchFilterMixin, ElasticLuceneSearchFilterMixin, LuceneSearchFilter):
@@ -52,9 +50,9 @@ REST_FRAMEWORK = {
 
 Create `searchsets.py` file in your django-application and fill it:
 ```python
-from lucyfer.django.searchhelper import DjangoSearchHelperMixin
-from lucyfer.django.searchset import DjangoSearchSet
-from lucyfer.django.fields import CharField
+from lucyfer.searchhelper import DjangoSearchHelperMixin
+from lucyfer.searchset import DjangoSearchSet
+from lucyfer.fields.django import CharField
 
 from .models import MyModel
 

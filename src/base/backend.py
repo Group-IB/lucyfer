@@ -5,4 +5,4 @@ warnings.warn(
     DeprecationWarning
 )
 
-from ..backend.base import *
+from ..backend import LuceneSearchFilter
