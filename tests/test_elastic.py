@@ -1,9 +1,9 @@
 from elasticsearch_dsl import Q
 from parameterized import parameterized
 
-from src.elastic.fields import ElasticSearchField, IntegerField, FloatField, BooleanField, \
-    NullBooleanField
-from src.elastic.searchset import ElasticSearchSet
+from src.searchset import ElasticSearchSet
+from src.searchset.fields import ElasticSearchField, ElasticIntegerField, ElasticFloatField, \
+    ElasticBooleanField, ElasticNullBooleanField
 
 from tests.base import TestParsing
 from tests.utils import compare_dicts, Panic
@@ -14,10 +14,10 @@ class MyElasticSearchSet(ElasticSearchSet):
     field_with_source = ElasticSearchField(sources=["source"])
     field_with_several_sources = ElasticSearchField(sources=["source1", "source2"])
 
-    int_field = IntegerField()
-    float_field = FloatField()
-    boolean_field = BooleanField()
-    null_boolean_field = NullBooleanField()
+    int_field = ElasticIntegerField()
+    float_field = ElasticFloatField()
+    boolean_field = ElasticBooleanField()
+    null_boolean_field = ElasticNullBooleanField()
 
 
 class TestLuceneToDjangoParsing(TestParsing):

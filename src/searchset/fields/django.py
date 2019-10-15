@@ -1,8 +1,8 @@
 from django.db.models import Q
 from lucyparser.tree import Operator
 
-from ..base.fields import BaseSearchField, negate_query_if_necessary
-from ..utils import LuceneSearchCastValueException
+from .base import BaseSearchField, negate_query_if_necessary
+from ...utils import LuceneSearchCastValueException
 
 
 class DjangoSearchFieldWithoutWildcard(BaseSearchField):
@@ -54,14 +54,14 @@ class DjangoSearchField(DjangoSearchFieldWithoutWildcard):
         return query
 
 
-class CharField(DjangoSearchField):
+class DjangoCharField(DjangoSearchField):
     OPERATOR_TO_LOOKUP = {
         Operator.EQ: "icontains",
         Operator.NEQ: "iexact",
     }
 
 
-class NumberField(DjangoSearchFieldWithoutWildcard):
+class DjangoNumberField(DjangoSearchFieldWithoutWildcard):
     OPERATOR_TO_LOOKUP = {
         Operator.GTE: "gte",
         Operator.LTE: "lte",
@@ -72,7 +72,7 @@ class NumberField(DjangoSearchFieldWithoutWildcard):
     }
 
 
-class IntegerField(NumberField):
+class DjangoIntegerField(DjangoNumberField):
     def cast_value(self, value):
         try:
             return int(value)
@@ -80,7 +80,7 @@ class IntegerField(NumberField):
             raise LuceneSearchCastValueException()
 
 
-class FloatField(NumberField):
+class DjangoFloatField(DjangoNumberField):
     def cast_value(self, value):
         try:
             return float(value)
@@ -88,7 +88,7 @@ class FloatField(NumberField):
             raise LuceneSearchCastValueException()
 
 
-class BooleanField(DjangoSearchFieldWithoutWildcard):
+class DjangoBooleanField(DjangoSearchFieldWithoutWildcard):
     OPERATOR_TO_LOOKUP = {
         Operator.EQ: "exact",
         Operator.NEQ: "exact",
@@ -105,6 +105,6 @@ class BooleanField(DjangoSearchFieldWithoutWildcard):
         raise LuceneSearchCastValueException()
 
 
-class NullBooleanField(BooleanField):
+class DjangoNullBooleanField(DjangoBooleanField):
     _values = {"true": True, "false": False, "null": None}
     _default_get_available_values_method = _values.keys

@@ -3,19 +3,19 @@ from unittest import TestCase, mock
 from django.db.models import Q
 from parameterized import parameterized
 
-from src.django.fields import CharField, FloatField, BooleanField, IntegerField
-from src.django.searchhelper import DjangoSearchHelperMixin
-from src.django.searchset import DjangoSearchSet
+from src.searchset import DjangoSearchSet
+from src.searchset.fields import DjangoCharField, DjangoIntegerField, DjangoFloatField, DjangoBooleanField
+from src.searchset.searchhelper import DjangoSearchHelperMixin
 from tests.base import TestParsing
 
 
 class UnicornSearchSet(DjangoSearchSet):
-    char_field = CharField()
-    integer_field = IntegerField()
-    float_field = FloatField()
-    boolean_field = BooleanField()
-    field_with_source = CharField(sources=["ok_it_is_a_source"])
-    field_with_several_sources = CharField(sources=["source1", "source2"])
+    char_field = DjangoCharField()
+    integer_field = DjangoIntegerField()
+    float_field = DjangoFloatField()
+    boolean_field = DjangoBooleanField()
+    field_with_source = DjangoCharField(sources=["ok_it_is_a_source"])
+    field_with_several_sources = DjangoCharField(sources=["source1", "source2"])
 
 
 class TestLuceneToDjangoParsing(TestParsing):
@@ -129,8 +129,8 @@ class TestLuceneToDjangoParsing(TestParsing):
 class TestMapping(TestCase):
     def test_not_excluding_any_fields(self):
         class NotExcludingFieldsSearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
-            a = CharField()
-            b = FloatField(sources=["c"])
+            a = DjangoCharField()
+            b = DjangoFloatField(sources=["c"])
 
             @classmethod
             def _get_raw_mapping(cls):
@@ -144,8 +144,8 @@ class TestMapping(TestCase):
 
     def test_exclude_fields_in_searchset_class(self):
         class ExcludeFieldsInClassSearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
-            a = CharField()
-            b = FloatField(sources=["c"])
+            a = DjangoCharField()
+            b = DjangoFloatField(sources=["c"])
 
             fields_to_exclude_from_mapping = ["b"]
 
@@ -161,8 +161,8 @@ class TestMapping(TestCase):
 
     def test_exclude_sources_in_field(self):
         class ExcludeSourcesInFieldsSearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
-            a = CharField()
-            b = FloatField(sources=["c"], exclude_sources_from_mapping=True)
+            a = DjangoCharField()
+            b = DjangoFloatField(sources=["c"], exclude_sources_from_mapping=True)
 
             @classmethod
             def _get_raw_mapping(cls):
@@ -191,11 +191,11 @@ class Model:
 
 
 class TestSearchHelpers(TestCase):
-    django_mapping_get_values = "src.django.mapping.DjangoMappingValue._get_values"
+    django_mapping_get_values = "src.searchset.mapping.DjangoMappingValue._get_values"
 
     def test_get_fields_values(self):
         class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
-            a = CharField()
+            a = DjangoCharField()
 
             @classmethod
             def _get_raw_mapping(cls):
@@ -215,7 +215,7 @@ class TestSearchHelpers(TestCase):
 
     def test_show_suggestions(self):
         class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
-            a = CharField()
+            a = DjangoCharField()
 
             @classmethod
             def _get_raw_mapping(cls):
@@ -229,14 +229,14 @@ class TestSearchHelpers(TestCase):
         self.assertEqual(list(), MySearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
 
         class MyNewSearchSet(MySearchSet):
-            a = CharField(show_suggestions=False)
+            a = DjangoCharField(show_suggestions=False)
 
         self.assertEqual(list(), MyNewSearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
 
     def test_get_mapping_with_suggestion_option(self):
         class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
-            a = CharField(show_suggestions=False)
-            b = CharField()
+            a = DjangoCharField(show_suggestions=False)
+            b = DjangoCharField()
 
             @classmethod
             def _get_raw_mapping(cls):
@@ -251,8 +251,8 @@ class TestSearchHelpers(TestCase):
 
     def test_turn_off_suggestions(self):
         class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
-            a = CharField(show_suggestions=False)
-            b = CharField()
+            a = DjangoCharField(show_suggestions=False)
+            b = DjangoCharField()
 
             @classmethod
             def _get_raw_mapping(cls):
@@ -272,8 +272,8 @@ class TestSearchHelpers(TestCase):
             return ['ululu', "xxxx"]
 
         class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
-            a = CharField(get_available_values_method=expected_available_values)
-            b = BooleanField()
+            a = DjangoCharField(get_available_values_method=expected_available_values)
+            b = DjangoBooleanField()
 
             @classmethod
             def _get_raw_mapping(cls):
@@ -290,7 +290,7 @@ class TestSearchHelpers(TestCase):
         escaped_available_a_values = ["xxx \\' xxx", 'xxx \\" xxx']
 
         class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
-            a = CharField(get_available_values_method=lambda *args: not_escaped_available_a_values)
+            a = DjangoCharField(get_available_values_method=lambda *args: not_escaped_available_a_values)
 
             @classmethod
             def _get_raw_mapping(cls):
@@ -305,7 +305,7 @@ class TestSearchHelpers(TestCase):
                          MySearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
 
         class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
-            a = CharField(get_available_values_method=lambda *args: not_escaped_available_a_values)
+            a = DjangoCharField(get_available_values_method=lambda *args: not_escaped_available_a_values)
 
             @classmethod
             def _get_raw_mapping(cls):

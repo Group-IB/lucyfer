@@ -1,6 +1,6 @@
-from ..base.searchset import BaseSearchSet
-from ..elastic.fields import ElasticSearchField
-from ..elastic.parser import LuceneToElasticParserMixin
+from .base import BaseSearchSet
+from ..searchset.fields.elastic import ElasticSearchField
+from ..parser import LuceneToElasticParserMixin
 
 
 class ElasticSearchSet(LuceneToElasticParserMixin, BaseSearchSet):

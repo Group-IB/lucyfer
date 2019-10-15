@@ -2,8 +2,8 @@ from typing import List
 
 from django.db.models.fields.related import ForeignKey
 
-from ..base.searchhelper import SearchHelperMixin
-from ..django.mapping import DjangoMapping
+from .base import SearchHelperMixin
+from ...searchset.mapping import DjangoMapping
 
 
 class DjangoSearchHelperMixin(SearchHelperMixin):

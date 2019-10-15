@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import List
 
-from ..base.mapping import MappingValue, Mapping
+from .base import MappingValue, Mapping
 
 
 class ElasticMappingValue(MappingValue):

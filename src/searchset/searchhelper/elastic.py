@@ -1,5 +1,5 @@
-from ..base.searchhelper import SearchHelperMixin
-from ..elastic.mapping import ElasticMapping
+from .base import SearchHelperMixin
+from ...searchset.mapping import ElasticMapping
 
 
 class ElasticSearchHelperMixin(SearchHelperMixin):

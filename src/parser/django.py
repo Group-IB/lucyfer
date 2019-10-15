@@ -1,7 +1,7 @@
 from django.db.models import Q
 from lucyparser.tree import ExpressionNode, AndNode, OrNode, NotNode
 
-from ..base.parser import BaseLuceneParserMixin
+from .base import BaseLuceneParserMixin
 
 
 class LuceneToDjangoParserMixin(BaseLuceneParserMixin):
