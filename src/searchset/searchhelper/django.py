@@ -1,9 +1,17 @@
+import warnings
+
 from typing import List
 
 from django.db.models.fields.related import ForeignKey
 
 from .base import SearchHelperMixin
 from ...searchset.mapping import DjangoMapping
+
+
+warnings.warn(
+    "DjangoSearchHelperMixin will be included in DjangoSearchSet in 0.2.5",
+    DeprecationWarning
+)
 
 
 class DjangoSearchHelperMixin(SearchHelperMixin):

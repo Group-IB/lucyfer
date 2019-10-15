@@ -1,5 +1,13 @@
+import warnings
+
 from .base import SearchHelperMixin
 from ...searchset.mapping import ElasticMapping
+
+
+warnings.warn(
+    "ElasticSearchHelperMixin will be included in ElasticSearchSet in 0.2.5",
+    DeprecationWarning
+)
 
 
 class ElasticSearchHelperMixin(SearchHelperMixin):
