@@ -1,7 +1,7 @@
 from django.core.exceptions import FieldError
 
 from .base import BaseSearchSet
-from ..fields import DjangoSearchField, DjangoSearchFieldWithoutWildcard
+from ..fields.django import DjangoSearchField, DjangoSearchFieldWithoutWildcard
 from ..parser import LuceneToDjangoParserMixin
 
 

@@ -1,5 +1,5 @@
 from .base import BaseSearchSet
-from ..fields import ElasticSearchField
+from ..fields.elastic import ElasticSearchField
 from ..parser import LuceneToElasticParserMixin
 
 
