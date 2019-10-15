@@ -1,6 +1,6 @@
 from typing import List, Optional, Dict
 
-from ..mapping import Mapping
+from ...searchset.mapping import Mapping
 
 
 class SearchHelperMixin:

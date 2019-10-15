@@ -1,8 +1,8 @@
 import warnings
 
 warnings.warn(
-    "Import from base dir will be deprecated in version 0.2.0, use lucyfer.fields import instead",
+    "Import from base dir will be deprecated in version 0.2.0, use lucyfer.searchset.fields.base import instead",
     DeprecationWarning
 )
 
-from ..fields.base import *
+from ..searchset.fields.base import *

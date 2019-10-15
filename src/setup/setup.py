@@ -4,7 +4,7 @@ import setuptools
 class LucyferSetup:
     _version = None
     _dirs = ['base', 'django', 'elastic',  # TODO remove, replace with os.listdir
-             'backend', 'fields', 'mapping', 'parser', 'searchhelper', 'searchset']
+             'backend', 'parser', 'searchset']
 
     def setup(self):
         setuptools.setup(**self._get_kwargs())

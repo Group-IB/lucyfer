@@ -3,7 +3,7 @@ from typing import List
 from django.db.models.fields.related import ForeignKey
 
 from .base import SearchHelperMixin
-from ..mapping import DjangoMapping
+from ...searchset.mapping import DjangoMapping
 
 
 class DjangoSearchHelperMixin(SearchHelperMixin):

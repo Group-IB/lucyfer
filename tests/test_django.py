@@ -3,8 +3,8 @@ from unittest import TestCase, mock
 from django.db.models import Q
 from parameterized import parameterized
 
-from src.fields.django import CharField, FloatField, BooleanField, IntegerField
-from src.searchhelper import DjangoSearchHelperMixin
+from src.searchset.fields.django import CharField, FloatField, BooleanField, IntegerField
+from src.searchset.searchhelper import DjangoSearchHelperMixin
 from src.searchset import DjangoSearchSet
 from tests.base import TestParsing
 
@@ -191,7 +191,7 @@ class Model:
 
 
 class TestSearchHelpers(TestCase):
-    django_mapping_get_values = "src.mapping.DjangoMappingValue._get_values"
+    django_mapping_get_values = "src.searchset.mapping.DjangoMappingValue._get_values"
 
     def test_get_fields_values(self):
         class MySearchSet(DjangoSearchHelperMixin, DjangoSearchSet):

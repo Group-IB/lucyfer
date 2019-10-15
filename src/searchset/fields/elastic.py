@@ -3,7 +3,7 @@ from elasticsearch_dsl.query import Range
 from lucyparser.tree import Operator
 
 from .base import BaseSearchField, negate_query_if_necessary
-from ..utils import LuceneSearchCastValueException
+from ...utils import LuceneSearchCastValueException
 
 
 class ElasticSearchField(BaseSearchField):

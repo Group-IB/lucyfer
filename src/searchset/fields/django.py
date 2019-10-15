@@ -2,7 +2,7 @@ from django.db.models import Q
 from lucyparser.tree import Operator
 
 from .base import BaseSearchField, negate_query_if_necessary
-from ..utils import LuceneSearchCastValueException
+from ...utils import LuceneSearchCastValueException
 
 
 class DjangoSearchFieldWithoutWildcard(BaseSearchField):

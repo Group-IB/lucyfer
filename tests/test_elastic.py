@@ -1,7 +1,7 @@
 from elasticsearch_dsl import Q
 from parameterized import parameterized
 
-from src.fields import ElasticSearchField, IntegerField, FloatField, BooleanField, \
+from src.searchset.fields.elastic import ElasticSearchField, IntegerField, FloatField, BooleanField, \
     NullBooleanField
 from src.searchset import ElasticSearchSet
 
