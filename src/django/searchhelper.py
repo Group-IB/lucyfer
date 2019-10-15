@@ -1,14 +1,8 @@
-from typing import List
+import warnings
 
-from django.db.models.fields.related import ForeignKey
+warnings.warn(
+    "Import from django dir will be deprecated in version 0.2.0, use lucyfer.searchhelper import instead",
+    DeprecationWarning
+)
 
-from ..base.searchhelper import SearchHelperMixin
-from ..django.mapping import DjangoMapping
-
-
-class DjangoSearchHelperMixin(SearchHelperMixin):
-    _mapping_class = DjangoMapping
-
-    @classmethod
-    def _get_raw_mapping(cls) -> List[str]:
-        return [field.name for field in cls.Meta.model._meta.fields if not isinstance(field, ForeignKey)]
+from ..searchhelper import DjangoSearchHelperMixin

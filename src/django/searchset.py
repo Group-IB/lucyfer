@@ -1,18 +1,8 @@
-from django.core.exceptions import FieldError
+import warnings
 
-from ..base.searchset import BaseSearchSet
-from ..django.fields import DjangoSearchField, DjangoSearchFieldWithoutWildcard
-from ..django.parser import LuceneToDjangoParserMixin
+warnings.warn(
+    "Import from django dir will be deprecated in version 0.2.0, use lucyfer.searchset import instead",
+    DeprecationWarning
+)
 
-
-class DjangoSearchSet(LuceneToDjangoParserMixin, BaseSearchSet):
-    _field_base_class = DjangoSearchFieldWithoutWildcard
-    _default_field = DjangoSearchField
-
-    @classmethod
-    def filter(cls, queryset, search_terms):
-        query = cls.parse(raw_expression=search_terms)
-        try:
-            return queryset.filter(query)
-        except FieldError:
-            return queryset.none()
+from ..searchset import DjangoSearchSet
