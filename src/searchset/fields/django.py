@@ -27,6 +27,8 @@ class DjangoSearchFieldWithoutWildcard(BaseSearchField):
 
 
 class DjangoSearchField(DjangoSearchFieldWithoutWildcard):
+    DEFAULT_LOOKUP = "iexact"
+
     def create_query_for_sources(self, condition):
         value = self.cast_value(condition.value)
 

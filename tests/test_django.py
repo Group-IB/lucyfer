@@ -114,11 +114,11 @@ class TestLuceneToDjangoParsing(TestParsing):
 
     @parameterized.expand((
             (
-                    Q(boolean_field__exact=True) | Q(undefined_field__icontains="ululu"),
+                    Q(boolean_field__exact=True) | Q(undefined_field__iexact="ululu"),
                     ["boolean_field : true OR undefined_field: ululu"]
             ),
             (
-                    Q(undefined_field__icontains="ululu"),
+                    Q(undefined_field__iexact="ululu"),
                     ["undefined_field: ululu"]
             ),
     ))
