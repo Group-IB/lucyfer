@@ -1,13 +1,13 @@
 from .base import BaseSearchSet
 from ..searchset.fields.elastic import ElasticSearchField
-from ..searchset.helper import SearchHelperMixin
 from ..searchset.mapping import ElasticMapping
 from ..parser import LuceneToElasticParserMixin
 
 
-class ElasticSearchSet(SearchHelperMixin, LuceneToElasticParserMixin, BaseSearchSet):
+class ElasticSearchSet(LuceneToElasticParserMixin, BaseSearchSet):
     _field_base_class = ElasticSearchField
     _default_field = ElasticSearchField
+    _field_type_to_field_class = dict()
 
     @classmethod
     def filter(cls, search, search_terms):

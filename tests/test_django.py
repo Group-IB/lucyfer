@@ -8,6 +8,21 @@ from src.searchset.fields import DjangoCharField, DjangoIntegerField, DjangoFloa
 from tests.base import TestParsing
 
 
+class Model:
+    class objects:
+        @classmethod
+        def filter(cls, *args, **kwargs):
+            return cls
+
+        @classmethod
+        def values_list(cls, *args, **kwargs):
+            return cls
+
+        @classmethod
+        def distinct(cls):
+            return ["a", "b", "c"]
+
+
 class UnicornSearchSet(DjangoSearchSet):
     char_field = DjangoCharField()
     integer_field = DjangoIntegerField()
@@ -15,6 +30,13 @@ class UnicornSearchSet(DjangoSearchSet):
     boolean_field = DjangoBooleanField()
     field_with_source = DjangoCharField(sources=["ok_it_is_a_source"])
     field_with_several_sources = DjangoCharField(sources=["source1", "source2"])
+
+    @classmethod
+    def _get_raw_mapping(cls):
+        return list()
+
+    class Meta:
+        model = Model
 
 
 class TestLuceneToDjangoParsing(TestParsing):
@@ -172,21 +194,6 @@ class TestMapping(TestCase):
 
         mapping = ExcludeSourcesInFieldsSearchSet.get_mapping()
         self.assertSequenceEqual(list(mapping), ["a", "b"])
-
-
-class Model:
-    class objects:
-        @classmethod
-        def filter(cls, *args, **kwargs):
-            return cls
-
-        @classmethod
-        def values_list(cls, *args, **kwargs):
-            return cls
-
-        @classmethod
-        def distinct(cls):
-            return ["a", "b", "c"]
 
 
 class TestSearchHelpers(TestCase):

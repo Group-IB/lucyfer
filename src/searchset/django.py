@@ -3,14 +3,14 @@ from django.db.models import ForeignKey
 
 from .base import BaseSearchSet
 from ..searchset.fields.django import DjangoSearchField, DjangoSearchFieldWithoutWildcard
-from ..searchset.helper import SearchHelperMixin
 from ..searchset.mapping import DjangoMapping
 from ..parser import LuceneToDjangoParserMixin
 
 
-class DjangoSearchSet(SearchHelperMixin, LuceneToDjangoParserMixin, BaseSearchSet):
+class DjangoSearchSet(LuceneToDjangoParserMixin, BaseSearchSet):
     _field_base_class = DjangoSearchFieldWithoutWildcard
     _default_field = DjangoSearchField
+    _field_type_to_field_class = dict()
 
     @classmethod
     def filter(cls, queryset, search_terms):
