@@ -1,10 +1,10 @@
+import os
+
 import setuptools
 
 
 class LucyferSetup:
     _version = None
-    _dirs = ['base', 'django', 'elastic',  # TODO remove, replace with os.listdir
-             'backend', 'parser', 'searchset']
 
     def setup(self):
         setuptools.setup(**self._get_kwargs())
@@ -16,7 +16,7 @@ class LucyferSetup:
     @property
     def version(self):
         if self._version is None:
-            with open("src/setup/lucyfer") as fp:
+            with open("setup/lucyfer") as fp:
                 self._version = fp.readline()
         return self._version
 
@@ -47,8 +47,24 @@ class LucyferSetup:
         )
 
     def _get_package_dir(self):
-        included_dirs = ["{}/" + req for req in self._dirs] + ["{}"]
-        return {_dir.format(self.lib): _dir.format("src") for _dir in included_dirs}
+        dirs = self.__get_project_dirs("src")
+        return {d.replace("src", self.lib): d for d in dirs}
+
+    def __get_project_dirs(self, path):
+        top_level_dirs = os.listdir(path)
+
+        current_paths = [path]
+
+        for p in top_level_dirs:
+            if p != "__pycache__":
+                full_path = os.path.join(path, p)
+
+                if os.path.isdir(full_path):
+                    current_paths.append(full_path)
+                    paths = self.__get_project_dirs(full_path)
+                    current_paths.extend(paths)
+
+        return list(set(current_paths))
 
     def _get_requirements(self, name):
         requirements = []
