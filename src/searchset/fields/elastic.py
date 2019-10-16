@@ -2,10 +2,10 @@ from elasticsearch_dsl import Q
 from elasticsearch_dsl.query import Range
 from lucyparser.tree import Operator
 
-from .base import BaseSearchField, negate_query_if_necessary
-
 from ...searchset.utils import FieldType
 from ...utils import LuceneSearchCastValueException
+
+from .base import BaseSearchField, negate_query_if_necessary
 
 
 class ElasticSearchField(BaseSearchField):

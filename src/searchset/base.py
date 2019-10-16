@@ -1,7 +1,11 @@
 from typing import List, Optional, Dict
 
 from ..searchset.mapping import Mapping
+from ..searchset.utils import FieldType
+from ..utils import fill_field_if_it_necessary
 
+
+# todo merge those classes
 
 class SearchHelper:
     """
@@ -46,7 +50,7 @@ class SearchHelper:
         return cls.fields_to_exclude_from_suggestions if cls.fields_to_exclude_from_suggestions is not None else list()
 
     @classmethod
-    def get_raw_mapping(cls) -> List[str]:
+    def get_raw_mapping(cls) -> Dict[str, FieldType]:
         """
         Caches raw mapping and return it
         """
@@ -94,16 +98,19 @@ class SearchHelper:
         # update mapping from mapping in database/elastic/etc
         raw_mapping = cls.get_raw_mapping()
 
-        for name in raw_mapping:
+        for name, field_type in raw_mapping.items():
             if name not in mapping_exclude:
                 mapping.add_value(name=name,
+                                  field_type=field_type,
                                   show_suggestions=cls.show_suggestions and name not in suggestions_exclude,
                                   escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions)
+            elif field_type in cls._field_type_to_field_class:
+                cls.append_field_source_to_search_field_instance(source=name, instance=cls._field_type_to_field_class[field_type]())
 
         cls._full_mapping = mapping
 
     @classmethod
-    def _get_raw_mapping(cls) -> List[str]:
+    def _get_raw_mapping(cls) -> Dict[str, FieldType]:
         """
         That method allows to get mapping in raw format. It have to be reimplemented
         """
@@ -139,9 +146,14 @@ class BaseSearchSet(SearchHelper):
 
                     if _cls.sources:
                         for field_source in _cls.sources:
-                            cls._field_source_to_search_field_instance[field_source] = _cls.__class__()
+                            cls.append_field_source_to_search_field_instance(source=field_source, instance=_cls.__class__())
 
         return cls._field_name_to_search_field_instance
+
+    @classmethod
+    @fill_field_if_it_necessary({"_field_source_to_search_field_instance": dict})
+    def append_field_source_to_search_field_instance(cls, source, instance):
+        cls._field_source_to_search_field_instance[source] = instance
 
     @classmethod
     def get_query_for_field(cls, condition):
