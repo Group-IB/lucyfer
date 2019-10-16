@@ -49,7 +49,7 @@ class DjangoSearchSet(LuceneToDjangoParserMixin, BaseSearchSet):
 
     @classmethod
     def _get_raw_mapping(cls) -> Dict[str, FieldType]:
-        return {field.name: cls._django_model_field_to_field_type.get(field.name)
+        return {field.name: cls._django_model_field_to_field_type.get(field.__class__)
                 for field in cls.Meta.model._meta.fields
                 if not isinstance(field, ForeignKey)}
 
