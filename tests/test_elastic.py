@@ -9,6 +9,26 @@ from tests.base import TestParsing
 from tests.utils import compare_dicts, Panic
 
 
+class Indicies:
+    @staticmethod
+    def get_mapping(*args, **kwargs):
+        return None
+
+
+class EsClient:
+    indices = Indicies
+
+
+class Model:
+    @staticmethod
+    def _get_es_client(*args, **kwargs):
+        return EsClient
+
+    @staticmethod
+    def _get_index(*args, **kwargs):
+        return "ululu"
+
+
 class MyElasticSearchSet(ElasticSearchSet):
     field = ElasticSearchField()
     field_with_source = ElasticSearchField(sources=["source"])
@@ -18,6 +38,9 @@ class MyElasticSearchSet(ElasticSearchSet):
     float_field = ElasticFloatField()
     boolean_field = ElasticBooleanField()
     null_boolean_field = ElasticNullBooleanField()
+
+    class Meta:
+        model = Model
 
 
 class TestLuceneToDjangoParsing(TestParsing):

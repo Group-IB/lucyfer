@@ -2,8 +2,10 @@ from elasticsearch_dsl import Q
 from elasticsearch_dsl.query import Range
 from lucyparser.tree import Operator
 
-from .base import BaseSearchField, negate_query_if_necessary
+from ...searchset.utils import FieldType
 from ...utils import LuceneSearchCastValueException
+
+from .base import BaseSearchField, negate_query_if_necessary
 
 
 class ElasticSearchField(BaseSearchField):
@@ -112,3 +114,11 @@ class ElasticBooleanField(ElasticSearchFieldWithoutWildCard):
 class ElasticNullBooleanField(ElasticBooleanField):
     _values = {"true": True, "false": False, "null": None}
     _default_get_available_values_method = _values.keys
+
+
+default_eclipse_field_types_to_fields = {
+    FieldType.BOOLEAN: ElasticBooleanField,
+    FieldType.INTEGER: ElasticIntegerField,
+    FieldType.NULL_BOOLEAN: ElasticNullBooleanField,
+    FieldType.FLOAT: ElasticFloatField,
+}

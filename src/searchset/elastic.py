@@ -1,13 +1,30 @@
-from .base import BaseSearchSet
+from typing import Dict
+
 from ..searchset.fields.elastic import ElasticSearchField
-from ..searchset.helper import SearchHelperMixin
 from ..searchset.mapping import ElasticMapping
+from ..searchset.utils import FieldType
 from ..parser import LuceneToElasticParserMixin
 
+from .base import BaseSearchSet
+from .fields.elastic import default_eclipse_field_types_to_fields
 
-class ElasticSearchSet(SearchHelperMixin, LuceneToElasticParserMixin, BaseSearchSet):
+
+elastic_data_type_to_field_type = {
+    "long": FieldType.INTEGER,
+    "integer": FieldType.INTEGER,
+    "short": FieldType.INTEGER,
+    "double": FieldType.FLOAT,
+    "float": FieldType.FLOAT,
+    "boolean": FieldType.NULL_BOOLEAN,
+}
+
+
+class ElasticSearchSet(LuceneToElasticParserMixin, BaseSearchSet):
     _field_base_class = ElasticSearchField
     _default_field = ElasticSearchField
+
+    _field_type_to_field_class = default_eclipse_field_types_to_fields
+    _elastic_data_type_to_field_type = elastic_data_type_to_field_type
 
     @classmethod
     def filter(cls, search, search_terms):
@@ -19,28 +36,31 @@ class ElasticSearchSet(SearchHelperMixin, LuceneToElasticParserMixin, BaseSearch
     _mapping_class = ElasticMapping
 
     @classmethod
-    def _format_mapping_values(cls, mapping, prefix="") -> list:
-        keys = []
+    def _format_mapping_values(cls, mapping, prefix="") -> Dict[str, FieldType]:
+        field_name_to_field_type = dict()
 
         for key, value in mapping.items():
-            keys.append(prefix + key)
             if "properties" in value:
-                keys.extend(cls._format_mapping_values(value["properties"], "".join([prefix, key, "."])))
+                field_name_to_field_type.update(cls._format_mapping_values(value["properties"], ".".join([prefix, key])))
+            else:
+                field_name = ".".join([prefix, key]) if prefix else key
+                field_name_to_field_type[field_name] = cls._elastic_data_type_to_field_type.get(value.get("type"))
 
-        return keys
+        return field_name_to_field_type
 
     @classmethod
-    def _get_raw_mapping(cls) -> list:
+    def _get_raw_mapping(cls) -> Dict[str, FieldType]:
         model_instance = cls.Meta.model()
-        mapping = cls.Meta.model._get_es_client().indices.get_mapping(index=model_instance._get_index())
-        if not mapping:
-            return []
-        last_index = max(mapping.keys())
+        index_to_mapping = cls.Meta.model._get_es_client().indices.get_mapping(index=model_instance._get_index())
+        if not index_to_mapping:
+            return dict()
+
+        last_index = max(index_to_mapping)
 
         try:
-            mapping = mapping[last_index]['mappings'][model_instance._doc_type.name]['properties']
+            last_mapping = index_to_mapping[last_index]['mappings'][model_instance._doc_type.name]['properties']
         except KeyError:
-            return []
+            return dict()
 
-        keys = cls._format_mapping_values(mapping)
-        return keys
+        field_name_to_field_type = cls._format_mapping_values(last_mapping)
+        return field_name_to_field_type

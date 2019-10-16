@@ -1,8 +1,10 @@
 from django.db.models import Q
 from lucyparser.tree import Operator
 
-from .base import BaseSearchField, negate_query_if_necessary
+from ...searchset.utils import FieldType
 from ...utils import LuceneSearchCastValueException
+
+from .base import BaseSearchField, negate_query_if_necessary
 
 
 class DjangoSearchFieldWithoutWildcard(BaseSearchField):
@@ -110,3 +112,11 @@ class DjangoBooleanField(DjangoSearchFieldWithoutWildcard):
 class DjangoNullBooleanField(DjangoBooleanField):
     _values = {"true": True, "false": False, "null": None}
     _default_get_available_values_method = _values.keys
+
+
+default_django_field_types_to_fields = {
+    FieldType.INTEGER: DjangoIntegerField,
+    FieldType.BOOLEAN: DjangoBooleanField,
+    FieldType.NULL_BOOLEAN: DjangoNullBooleanField,
+    FieldType.FLOAT: DjangoFloatField
+}

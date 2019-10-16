@@ -8,6 +8,21 @@ from src.searchset.fields import DjangoCharField, DjangoIntegerField, DjangoFloa
 from tests.base import TestParsing
 
 
+class Model:
+    class objects:
+        @classmethod
+        def filter(cls, *args, **kwargs):
+            return cls
+
+        @classmethod
+        def values_list(cls, *args, **kwargs):
+            return cls
+
+        @classmethod
+        def distinct(cls):
+            return ["a", "b", "c"]
+
+
 class UnicornSearchSet(DjangoSearchSet):
     char_field = DjangoCharField()
     integer_field = DjangoIntegerField()
@@ -15,6 +30,13 @@ class UnicornSearchSet(DjangoSearchSet):
     boolean_field = DjangoBooleanField()
     field_with_source = DjangoCharField(sources=["ok_it_is_a_source"])
     field_with_several_sources = DjangoCharField(sources=["source1", "source2"])
+
+    @classmethod
+    def get_raw_mapping(cls):
+        return dict()
+
+    class Meta:
+        model = Model
 
 
 class TestLuceneToDjangoParsing(TestParsing):
@@ -132,8 +154,8 @@ class TestMapping(TestCase):
             b = DjangoFloatField(sources=["c"])
 
             @classmethod
-            def _get_raw_mapping(cls):
-                return list()
+            def get_raw_mapping(cls):
+                return dict()
 
             class Meta:
                 model = None
@@ -149,8 +171,8 @@ class TestMapping(TestCase):
             fields_to_exclude_from_mapping = ["b"]
 
             @classmethod
-            def _get_raw_mapping(cls):
-                return list()
+            def get_raw_mapping(cls):
+                return dict()
 
             class Meta:
                 model = None
@@ -164,29 +186,14 @@ class TestMapping(TestCase):
             b = DjangoFloatField(sources=["c"], exclude_sources_from_mapping=True)
 
             @classmethod
-            def _get_raw_mapping(cls):
-                return list()
+            def get_raw_mapping(cls):
+                return dict()
 
             class Meta:
                 model = None
 
         mapping = ExcludeSourcesInFieldsSearchSet.get_mapping()
         self.assertSequenceEqual(list(mapping), ["a", "b"])
-
-
-class Model:
-    class objects:
-        @classmethod
-        def filter(cls, *args, **kwargs):
-            return cls
-
-        @classmethod
-        def values_list(cls, *args, **kwargs):
-            return cls
-
-        @classmethod
-        def distinct(cls):
-            return ["a", "b", "c"]
 
 
 class TestSearchHelpers(TestCase):
@@ -197,8 +204,8 @@ class TestSearchHelpers(TestCase):
             a = DjangoCharField()
 
             @classmethod
-            def _get_raw_mapping(cls):
-                return list()
+            def get_raw_mapping(cls):
+                return dict()
 
             class Meta:
                 model = Model
@@ -217,8 +224,8 @@ class TestSearchHelpers(TestCase):
             a = DjangoCharField()
 
             @classmethod
-            def _get_raw_mapping(cls):
-                return list()
+            def get_raw_mapping(cls):
+                return dict()
 
             class Meta:
                 model = Model
@@ -238,8 +245,8 @@ class TestSearchHelpers(TestCase):
             b = DjangoCharField()
 
             @classmethod
-            def _get_raw_mapping(cls):
-                return ["c", "d"]
+            def get_raw_mapping(cls):
+                return {k: None for k in ["c", "d"]}
 
             class Meta:
                 model = Model
@@ -254,8 +261,8 @@ class TestSearchHelpers(TestCase):
             b = DjangoCharField()
 
             @classmethod
-            def _get_raw_mapping(cls):
-                return ["c", "d"]
+            def get_raw_mapping(cls):
+                return {k: None for k in ["c", "d"]}
 
             class Meta:
                 model = Model
@@ -275,8 +282,8 @@ class TestSearchHelpers(TestCase):
             b = DjangoBooleanField()
 
             @classmethod
-            def _get_raw_mapping(cls):
-                return ["c", "d"]
+            def get_raw_mapping(cls):
+                return {k: None for k in ["c", "d"]}
 
             class Meta:
                 model = Model
@@ -292,8 +299,8 @@ class TestSearchHelpers(TestCase):
             a = DjangoCharField(get_available_values_method=lambda *args: not_escaped_available_a_values)
 
             @classmethod
-            def _get_raw_mapping(cls):
-                return list()
+            def get_raw_mapping(cls):
+                return dict()
 
             class Meta:
                 model = Model
@@ -307,8 +314,8 @@ class TestSearchHelpers(TestCase):
             a = DjangoCharField(get_available_values_method=lambda *args: not_escaped_available_a_values)
 
             @classmethod
-            def _get_raw_mapping(cls):
-                return list()
+            def get_raw_mapping(cls):
+                return dict()
 
             class Meta:
                 model = Model

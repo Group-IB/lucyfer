@@ -14,9 +14,14 @@ class MappingValue:
     _max_cached_values_by_prefix = 10
     _cache_values_min_length = 3
 
-    def __init__(self, name: str, sources=None, show_suggestions=True, get_available_values_method=None,
+    def __init__(self, name: str,
+                 field_type=None,
+                 sources=None,
+                 show_suggestions=True,
+                 get_available_values_method=None,
                  escape_quotes_in_suggestions=True):
         self.name = name
+        self.field_type = field_type
         self.sources = sources if sources else [name]
         self.show_suggestions = show_suggestions
         self.get_available_values_method = get_available_values_method
@@ -67,10 +72,16 @@ class Mapping(OrderedDict):
         self.model = model
         super().__init__(*args, **kwargs)
 
-    def add_value(self, name: str, sources=None, show_suggestions=True, get_available_values_method=None,
-                  escape_quotes_in_suggestions=True):
+    def add_value(self, name: str,
+                  field_type=None,
+                  sources=None,
+                  show_suggestions=True,
+                  get_available_values_method=None,
+                  escape_quotes_in_suggestions=True
+                  ):
         if name not in self:
             self.update({name: self._value_class(name=name,
+                                                 field_type=field_type,
                                                  sources=sources,
                                                  show_suggestions=show_suggestions,
                                                  get_available_values_method=get_available_values_method,
