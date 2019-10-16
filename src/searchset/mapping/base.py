@@ -48,7 +48,7 @@ class MappingValue:
         return self._cached_values[cache_key][prefix]
 
     def _get_available_values(self, qs, prefix):
-        if self.get_available_values_method is not None and callable(self.get_available_values_method):
+        if callable(self.get_available_values_method):
             available_values = self.get_available_values_method()
             values = (v for v in available_values if prefix in v)
         else:
