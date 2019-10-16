@@ -112,8 +112,9 @@ class SearchHelper:
 
 class BaseSearchSet(SearchHelper):
     _field_base_class = None
-    _field_name_to_search_field_instance = None
-    _field_sources: Optional[List[str]] = None
+
+    _field_name_to_search_field_instance: Optional[Dict[str, _field_base_class]] = None
+    _field_source_to_search_field_instance: Optional[Dict[str, _field_base_class]] = None
 
     # default field uses for creating query for fields not defined in searchset class
     _default_field = None
@@ -128,24 +129,19 @@ class BaseSearchSet(SearchHelper):
         Returns dictionary with fieldnames defined in searchset class and field instances
         """
         if cls._field_name_to_search_field_instance is None:
-            cls._field_name_to_search_field_instance = {name: _cls
-                                                        for name, _cls in cls.__dict__.items()
-                                                        if isinstance(_cls, cls._field_base_class)}
+            cls._field_name_to_search_field_instance = dict()
+            cls._field_source_to_search_field_instance = dict()
+
+            for name, _cls in cls.__dict__.items():
+                if isinstance(_cls, cls._field_base_class):
+
+                    cls._field_name_to_search_field_instance[name] = _cls
+
+                    if _cls.sources:
+                        for field_source in _cls.sources:
+                            cls._field_source_to_search_field_instance[field_source] = _cls.__class__()
 
         return cls._field_name_to_search_field_instance
-
-    @classmethod
-    def get_fields_sources(cls) -> List[str]:
-        """
-        Returns sources for field defined in searchset class
-        """
-        if cls._field_sources is None:
-            cls._field_sources = list()
-
-            for name, _cls in cls.get_field_name_to_field().items():
-                cls._field_sources.extend(_cls.get_sources(name))
-
-        return cls._field_sources
 
     @classmethod
     def get_query_for_field(cls, condition):
@@ -155,7 +151,11 @@ class BaseSearchSet(SearchHelper):
 
         field = cls.get_field_name_to_field().get(condition.name)
 
-        # if field not presented in hardcoded fields in searchset class
+        # if field not presented in hardcoded fields in searchset class maybe it presented in some field sources
+        if field is None:
+            field = cls._field_source_to_search_field_instance.get(condition.name)
+
+        # if fields is not source we can try to get field instance by field type from mapping
         if field is None:
 
             # check field type
@@ -163,4 +163,5 @@ class BaseSearchSet(SearchHelper):
 
             field = cls._field_type_to_field_class.get(field_type, cls._default_field)()
 
+        # and finally create a query
         return field.get_query(condition)
