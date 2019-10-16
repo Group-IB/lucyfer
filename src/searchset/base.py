@@ -115,7 +115,11 @@ class BaseSearchSet(SearchHelper):
     _field_name_to_search_field_instance = None
     _field_sources: Optional[List[str]] = None
 
+    # default field uses for creating query for fields not defined in searchset class
     _default_field = None
+
+    # provides possibility to use auto cast for boolean/integer/etc fields by field classes usage
+    # that means we analyze elastic mapping data types or django models to match it to field classes
     _field_type_to_field_class: Optional[Dict[str, _field_base_class]] = None
 
     @classmethod

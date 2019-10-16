@@ -1,16 +1,18 @@
 from django.core.exceptions import FieldError
 from django.db.models import ForeignKey
 
-from .base import BaseSearchSet
 from ..searchset.fields.django import DjangoSearchField, DjangoSearchFieldWithoutWildcard
 from ..searchset.mapping import DjangoMapping
 from ..parser import LuceneToDjangoParserMixin
+
+from .base import BaseSearchSet
+from .fields.django import default_django_field_types_to_fields
 
 
 class DjangoSearchSet(LuceneToDjangoParserMixin, BaseSearchSet):
     _field_base_class = DjangoSearchFieldWithoutWildcard
     _default_field = DjangoSearchField
-    _field_type_to_field_class = dict()
+    _field_type_to_field_class = default_django_field_types_to_fields
 
     @classmethod
     def filter(cls, queryset, search_terms):

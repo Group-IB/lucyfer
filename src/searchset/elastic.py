@@ -1,13 +1,15 @@
-from .base import BaseSearchSet
 from ..searchset.fields.elastic import ElasticSearchField
 from ..searchset.mapping import ElasticMapping
 from ..parser import LuceneToElasticParserMixin
+
+from .base import BaseSearchSet
+from .fields.elastic import default_eclipse_field_types_to_fields
 
 
 class ElasticSearchSet(LuceneToElasticParserMixin, BaseSearchSet):
     _field_base_class = ElasticSearchField
     _default_field = ElasticSearchField
-    _field_type_to_field_class = dict()
+    _field_type_to_field_class = default_eclipse_field_types_to_fields
 
     @classmethod
     def filter(cls, search, search_terms):
