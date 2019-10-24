@@ -41,7 +41,7 @@ class ElasticSearchSet(LuceneToElasticParserMixin, BaseSearchSet):
 
         for key, value in mapping.items():
             if "properties" in value:
-                field_name_to_field_type.update(cls._format_mapping_values(value["properties"], ".".join([prefix, key])))
+                field_name_to_field_type.update(cls._format_mapping_values(value["properties"], ".".join([prefix, key]) if prefix else key))
             else:
                 field_name = ".".join([prefix, key]) if prefix else key
                 field_name_to_field_type[field_name] = cls._elastic_data_type_to_field_type.get(value.get("type"))
