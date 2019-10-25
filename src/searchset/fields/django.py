@@ -41,6 +41,7 @@ class DjangoSearchField(DjangoSearchFieldWithoutWildcard):
             lookup = "iendswith"
             value = value[1:]
         elif value.endswith("*"):
+            value = value[:-1]
             lookup = "istartswith"
         else:
             return super().create_query_for_sources(condition)
