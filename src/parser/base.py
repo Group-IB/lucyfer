@@ -1,9 +1,15 @@
 from lucyparser import parse
 from lucyparser.exceptions import BaseLucyException
 from lucyparser.tree import BaseNode
+from lucyparser.parsing import LucyParser
 
 from ..utils import LuceneSearchException
 
+class CyrillicParser(LucyParser):
+    #with redefined `permitted_name_value_char` it's only used for error messages
+    value_chars = "letter, digit, or one of -.*_?!;,:@|"
+    def permitted_name_value_char(self, c: str):
+        return c.isalnum()
 
 class BaseLuceneParserMixin:
     @classmethod
@@ -13,7 +19,7 @@ class BaseLuceneParserMixin:
         """
 
         try:
-            tree = parse(string=raw_expression)
+            tree = parse(string=raw_expression, parser_class=CyrillicParser)
         except BaseLucyException:
             raise LuceneSearchException()
 
