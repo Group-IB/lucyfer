@@ -1,15 +1,18 @@
 from lucyparser import parse
 from lucyparser.exceptions import BaseLucyException
 from lucyparser.tree import BaseNode
-from lucyparser.parsing import LucyParser
+from lucyparser.parsing import Parser as LucyParser
 
 from ..utils import LuceneSearchException
 
+
 class CyrillicParser(LucyParser):
-    #with redefined `permitted_name_value_char` it's only used for error messages
+    # with redefined `permitted_name_value_char` it's only used for error messages
     value_chars = "letter, digit, or one of -.*_?!;,:@|"
+
     def permitted_name_value_char(self, c: str):
-        return c.isalnum()
+        return c.isalnum() or c in "-.*_?!;,:@|"
+
 
 class BaseLuceneParserMixin:
     @classmethod
