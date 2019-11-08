@@ -8,9 +8,9 @@ class LuceneToElasticParserMixin(BaseLuceneParserMixin):
     @classmethod
     def _parse_tree(cls, tree):
         if isinstance(tree, ExpressionNode):
-            return cls.get_query_for_field(tree)
+            return cls.get_query_for_field(tree) or ~Q()
 
-        query = None
+        query = ~Q()
 
         is_and_node = isinstance(tree, AndNode)
         is_or_node = isinstance(tree, OrNode)
@@ -18,10 +18,6 @@ class LuceneToElasticParserMixin(BaseLuceneParserMixin):
 
         if is_and_node or is_not_node or is_or_node:
             queries = [cls._parse_tree(tree=child) for child in tree.children]
-            queries = [q for q in queries if q is not None]
-
-            if not queries:
-                return None
 
             query = queries[0]
 
