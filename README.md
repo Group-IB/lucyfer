@@ -24,8 +24,8 @@ pip install lucyfer[full]
 | lucyparser                | +       | +     |
 | Django                    | +       | +     |
 | djangorestframework       | +       | +     |
-| django-rest-elasticsearch | +       | -     |
-| elasticsearch-dsl         | +       | -     |
+| django-rest-elasticsearch | -       | +     |
+| elasticsearch-dsl         | -       | +     |
 
 
 ## Usage Example  
