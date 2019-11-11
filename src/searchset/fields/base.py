@@ -16,6 +16,7 @@ class BaseSearchField:
                  exclude_sources_from_mapping=False,
                  show_suggestions=True,
                  get_available_values_method=None,
+                 use_field_class_for_sources=True,
                  *args, **kwargs):
 
         sources = list() if sources is None else sources
@@ -23,6 +24,7 @@ class BaseSearchField:
 
         self.exclude_sources_from_mapping = exclude_sources_from_mapping
         self.show_suggestions = show_suggestions
+        self.use_field_class_for_sources = use_field_class_for_sources
         self._get_available_values_method = get_available_values_method
 
     def cast_value(self, value: str):
