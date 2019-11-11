@@ -116,7 +116,7 @@ class ElasticNullBooleanField(ElasticBooleanField):
     _default_get_available_values_method = _values.keys
 
 
-default_eclipse_field_types_to_fields = {
+default_elastic_field_types_to_fields = {
     FieldType.BOOLEAN: ElasticBooleanField,
     FieldType.INTEGER: ElasticIntegerField,
     FieldType.NULL_BOOLEAN: ElasticNullBooleanField,

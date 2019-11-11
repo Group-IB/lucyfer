@@ -31,7 +31,7 @@ class DjangoSearchSet(LuceneToDjangoParserMixin, BaseSearchSet):
     _default_field = DjangoSearchField
 
     _field_type_to_field_class = default_django_field_types_to_fields
-    _django_model_field_to_field_type = django_model_field_to_field_type
+    _raw_type_to_field_type = django_model_field_to_field_type
 
     _field_sources: Optional[List[str]] = None
 
@@ -49,7 +49,7 @@ class DjangoSearchSet(LuceneToDjangoParserMixin, BaseSearchSet):
 
     @classmethod
     def _get_raw_mapping(cls) -> Dict[str, FieldType]:
-        return {field.name: cls._django_model_field_to_field_type.get(field.__class__)
+        return {field.name: cls._raw_type_to_field_type.get(field.__class__)
                 for field in cls.Meta.model._meta.fields
                 if not isinstance(field, ForeignKey)}
 

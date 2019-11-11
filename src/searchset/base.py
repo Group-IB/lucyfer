@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 
 from ..searchset.mapping import Mapping
 from ..searchset.utils import FieldType
@@ -89,11 +89,12 @@ class SearchHelper:
                                   escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions)
 
             if not field.exclude_sources_from_mapping:
-                for source in field.sources:
-                    mapping.add_value(name=source,
-                                      show_suggestions=cls.show_suggestions and source not in suggestions_exclude,
-                                      get_available_values_method=get_available_values_method,
-                                      escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions)
+                if field.use_field_class_for_sources:
+                    for source in field.sources:
+                        mapping.add_value(name=source,
+                                          show_suggestions=cls.show_suggestions and source not in suggestions_exclude,
+                                          get_available_values_method=get_available_values_method,
+                                          escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions)
             else:
                 mapping_exclude.extend(field.sources)
 
@@ -139,7 +140,8 @@ class BaseSearchSet(SearchHelper):
 
     # provides possibility to use auto cast for boolean/integer/etc fields by field classes usage
     # that means we analyze elastic mapping data types or django models to match it to field classes
-    _field_type_to_field_class: Optional[Dict[str, _field_base_class]] = None
+    _field_type_to_field_class: Optional[Dict[int, _field_base_class]] = None
+    _raw_type_to_field_type: Optional[Dict[Any, int]] = None
 
     @classmethod
     def get_field_name_to_field(cls):
@@ -155,7 +157,7 @@ class BaseSearchSet(SearchHelper):
 
                     cls._field_name_to_search_field_instance[name] = _cls
 
-                    if _cls.sources:
+                    if _cls.use_field_class_for_sources and not _cls.exclude_sources_from_mapping and _cls.sources:
                         for field_source in _cls.sources:
                             cls.append_field_source_to_search_field_instance(source=field_source, instance=_cls.__class__())
 
