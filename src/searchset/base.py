@@ -94,26 +94,29 @@ class SearchHelper:
                                       show_suggestions=cls.show_suggestions and source not in suggestions_exclude,
                                       get_available_values_method=get_available_values_method,
                                       escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions)
+            else:
+                mapping_exclude.extend(field.sources)
 
         # update mapping from mapping in database/elastic/etc
         raw_mapping = cls.get_raw_mapping()
 
         for name, field_type in raw_mapping.items():
-            if field_type in cls._field_type_to_field_class:
-                field_instance = cls._field_type_to_field_class[field_type]()
-            else:
-                field_instance = None
-
             if name not in mapping_exclude:
+                if field_type in cls._field_type_to_field_class:
+                    field_instance = cls._field_type_to_field_class[field_type]()
+                else:
+                    field_instance = None
+
                 get_available_values_method = field_instance.get_available_values_method() if field_instance else None
                 mapping.add_value(name=name,
                                   field_type=field_type,
                                   show_suggestions=cls.show_suggestions and name not in suggestions_exclude,
                                   get_available_values_method=get_available_values_method,
                                   escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions)
-            elif field_instance is not None:
-                cls.append_field_source_to_search_field_instance(source=name,
-                                                                 instance=field_instance)
+
+                if field_instance is not None:
+                    cls.append_field_source_to_search_field_instance(source=name,
+                                                                     instance=field_instance)
 
         cls._full_mapping = mapping
 
