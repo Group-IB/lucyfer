@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 
 from ..searchset.mapping import Mapping
 from ..searchset.utils import FieldType
@@ -139,7 +139,8 @@ class BaseSearchSet(SearchHelper):
 
     # provides possibility to use auto cast for boolean/integer/etc fields by field classes usage
     # that means we analyze elastic mapping data types or django models to match it to field classes
-    _field_type_to_field_class: Optional[Dict[str, _field_base_class]] = None
+    _field_type_to_field_class: Optional[Dict[int, _field_base_class]] = None
+    _raw_type_to_field_type: Optional[Dict[Any, int]] = None
 
     @classmethod
     def get_field_name_to_field(cls):
