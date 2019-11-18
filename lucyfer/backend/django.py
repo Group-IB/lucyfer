@@ -20,18 +20,12 @@ class DjangoLuceneSearchFilterMixin(SearchFilter):
         # if there is nothing to present
         # we give a second chance to common search
         if filtered_queryset is None:
-            queryset = super().filter_queryset(request=request, queryset=queryset, view=view)
+            queryset = self.custom_filter_queryset(request=request, queryset=queryset, view=view)
         else:
             queryset = self._use_distinct(searchset_class=searchset_class,
                                           queryset=queryset, filtered_queryset=filtered_queryset)
 
         return queryset
-
-    def _use_distinct(self, searchset_class, queryset, filtered_queryset):
-        if self.must_call_distinct(queryset, searchset_class.get_fields_sources()):
-            return distinct(filtered_queryset, queryset)
-        else:
-            return filtered_queryset
 
     def lucene_filter_queyset(self, searchset_class, search_terms, queryset):
         if searchset_class is not None:
@@ -40,3 +34,12 @@ class DjangoLuceneSearchFilterMixin(SearchFilter):
             except LuceneSearchException:
                 return None
         return None
+
+    def custom_filter_queryset(self, request, queryset, view):
+        return super().filter_queryset(request=request, queryset=queryset, view=view)
+
+    def _use_distinct(self, searchset_class, queryset, filtered_queryset):
+        if self.must_call_distinct(queryset, searchset_class.get_fields_sources()):
+            return distinct(filtered_queryset, queryset)
+        else:
+            return filtered_queryset
