@@ -81,3 +81,9 @@ class MyModelViewSet(ModelViewSet):
 You have to save `search_fields` in your `ModelViewSet` if you want to save custom search possibility.
 
 Now you can use lucene-way syntax for your view.
+
+
+Tests execution:
+```
+pytest tests/test_* -c tests/pytest.ini 
+```

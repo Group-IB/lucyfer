@@ -2,7 +2,7 @@ from django.conf import settings
 from django.test.signals import setting_changed
 
 
-LUCYFER_SETTINGS_NAME = "LYCYFER_SETTINGS"
+LUCYFER_SETTINGS_NAME = "LUCYFER_SETTINGS"
 
 
 DEFAULTS = {
