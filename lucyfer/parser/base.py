@@ -3,7 +3,7 @@ from lucyparser.exceptions import BaseLucyException
 from lucyparser.tree import BaseNode
 from lucyparser.parsing import Parser as LucyParser
 
-from ..utils import LuceneSearchException
+from lucyfer.utils import LuceneSearchException
 
 
 class CyrillicParser(LucyParser):

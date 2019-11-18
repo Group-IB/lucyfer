@@ -4,13 +4,12 @@ from django.core.exceptions import FieldError
 from django.db.models import ForeignKey, AutoField, BooleanField, BigAutoField, BigIntegerField, FloatField, \
     IntegerField, NullBooleanField, PositiveIntegerField, PositiveSmallIntegerField
 
-from ..searchset.fields.django import DjangoSearchField, DjangoSearchFieldWithoutWildcard
-from ..searchset.mapping import DjangoMapping
-from ..searchset.utils import FieldType
-from ..parser import LuceneToDjangoParserMixin
-
-from .base import BaseSearchSet
-from .fields.django import default_django_field_types_to_fields
+from lucyfer.searchset.base import BaseSearchSet
+from lucyfer.searchset.fields.django import DjangoSearchField, DjangoSearchFieldWithoutWildcard, \
+    default_django_field_types_to_fields
+from lucyfer.searchset.mapping import DjangoMapping
+from lucyfer.searchset.utils import FieldType
+from lucyfer.parser import LuceneToDjangoParserMixin
 
 
 django_model_field_to_field_type = {

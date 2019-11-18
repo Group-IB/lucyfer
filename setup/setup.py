@@ -24,8 +24,6 @@ class LucyferSetup:
         with open("README.md", "r") as fh:
             long_description = fh.read()
 
-        package_dir = self._get_package_dir()
-
         return dict(
             author="N Copiy",
             author_email="ncopiy@ya.ru",
@@ -41,16 +39,11 @@ class LucyferSetup:
             install_requires=self._get_requirements(name="base"),
             extras_require=dict(full=self._get_requirements(name="extra")),
             name=self.lib,
-            packages=package_dir.keys(),
-            package_dir=package_dir,
+            packages=self._get_package_dir(self.lib),
             version=self.version
         )
 
-    def _get_package_dir(self):
-        dirs = self.__get_project_dirs("src")
-        return {d.replace("src", self.lib): d for d in dirs}
-
-    def __get_project_dirs(self, path):
+    def _get_package_dir(self, path):
         top_level_dirs = os.listdir(path)
 
         current_paths = [path]
@@ -61,7 +54,7 @@ class LucyferSetup:
 
                 if os.path.isdir(full_path):
                     current_paths.append(full_path)
-                    paths = self.__get_project_dirs(full_path)
+                    paths = self._get_package_dir(full_path)
                     current_paths.extend(paths)
 
         return list(set(current_paths))

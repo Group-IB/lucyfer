@@ -1,8 +1,8 @@
 from elasticsearch_dsl import Q
 from parameterized import parameterized
 
-from src.searchset import ElasticSearchSet
-from src.searchset.fields import ElasticSearchField, ElasticIntegerField, ElasticFloatField, \
+from lucyfer.searchset import ElasticSearchSet
+from lucyfer.searchset.fields import ElasticSearchField, ElasticIntegerField, ElasticFloatField, \
     ElasticBooleanField, ElasticNullBooleanField
 
 from tests.base import TestParsing
