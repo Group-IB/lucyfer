@@ -20,7 +20,6 @@ class LucyferSettings:
     @property
     def user_settings(self):
         if not hasattr(self, '_user_settings'):
-            print(getattr(settings, LUCYFER_SETTINGS_NAME, {}))
             self._user_settings = getattr(settings, LUCYFER_SETTINGS_NAME, {})
         return self._user_settings
 
