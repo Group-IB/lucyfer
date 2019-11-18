@@ -16,7 +16,7 @@ class ElasticLuceneSearchFilterMixin(BaseEsFilterBackend):
                                                     search=search)
 
         if filtered_search is None:
-            return search.filter('query_string', **{'query': search_terms})
+            return self.custom_filter_search(request=request, search=search, view=view, search_terms=search_terms)
 
         return filtered_search
 
@@ -27,3 +27,6 @@ class ElasticLuceneSearchFilterMixin(BaseEsFilterBackend):
             except LuceneSearchException:
                 return None
         return None
+
+    def custom_filter_search(self, request, search, view, search_terms):
+        return search.filter('query_string', **{'query': search_terms})
