@@ -1,12 +1,10 @@
 from typing import Dict
 
-from ..searchset.fields.elastic import ElasticSearchField
-from ..searchset.mapping import ElasticMapping
-from ..searchset.utils import FieldType
-from ..parser import LuceneToElasticParserMixin
-
-from .base import BaseSearchSet
-from .fields.elastic import default_elastic_field_types_to_fields
+from lucyfer.parser import LuceneToElasticParserMixin
+from lucyfer.searchset.base import BaseSearchSet
+from lucyfer.searchset.fields.elastic import default_elastic_field_types_to_fields, ElasticSearchField
+from lucyfer.searchset.mapping import ElasticMapping
+from lucyfer.searchset.utils import FieldType
 
 
 elastic_data_type_to_field_type = {

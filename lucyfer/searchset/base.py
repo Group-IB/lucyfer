@@ -1,8 +1,8 @@
 from typing import List, Optional, Dict, Any
 
-from ..searchset.mapping import Mapping
-from ..searchset.utils import FieldType
-from ..utils import fill_field_if_it_necessary
+from lucyfer.searchset.mapping import Mapping
+from lucyfer.searchset.utils import FieldType
+from lucyfer.utils import fill_field_if_it_necessary
 
 
 # todo merge those classes

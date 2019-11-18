@@ -1,7 +1,17 @@
 from unittest import TestCase
 
+from django.conf import settings
 
-class TestParsing(TestCase):
+
+class LucyferTestCase(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        if not settings.configured:
+            settings.configure()
+
+
+class TestParsing(LucyferTestCase):
     def _check_rule(self, rule, expected_query):
         self.assertQueriesEqual(expected_query, self.searchset_class.parse(raw_expression=rule))
 

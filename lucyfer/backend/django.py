@@ -1,7 +1,7 @@
 from rest_framework.compat import distinct
 from rest_framework.filters import SearchFilter
 
-from ..utils import LuceneSearchException
+from lucyfer.utils import LuceneSearchException
 
 
 class DjangoLuceneSearchFilterMixin(SearchFilter):

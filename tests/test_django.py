@@ -1,11 +1,11 @@
-from unittest import TestCase, mock
+from unittest import mock
 
 from django.db.models import Q
 from parameterized import parameterized
 
-from src.searchset import DjangoSearchSet
-from src.searchset.fields import DjangoCharField, DjangoIntegerField, DjangoFloatField, DjangoBooleanField
-from tests.base import TestParsing
+from lucyfer.searchset import DjangoSearchSet
+from lucyfer.searchset.fields import DjangoCharField, DjangoIntegerField, DjangoFloatField, DjangoBooleanField
+from tests.base import TestParsing, LucyferTestCase
 
 
 class Model:
@@ -147,7 +147,7 @@ class TestLuceneToDjangoParsing(TestParsing):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
 
 
-class TestMapping(TestCase):
+class TestMapping(LucyferTestCase):
     def test_not_excluding_any_fields(self):
         class NotExcludingFieldsSearchSet(DjangoSearchSet):
             a = DjangoCharField()
@@ -196,8 +196,8 @@ class TestMapping(TestCase):
         self.assertSequenceEqual(list(mapping), ["a", "b"])
 
 
-class TestSearchHelpers(TestCase):
-    django_mapping_get_values = "src.searchset.mapping.DjangoMappingValue._get_values"
+class TestSearchHelpers(LucyferTestCase):
+    django_mapping_get_values = "lucyfer.searchset.mapping.DjangoMappingValue._get_values"
 
     def test_get_fields_values(self):
         class MySearchSet(DjangoSearchSet):

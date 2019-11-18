@@ -3,7 +3,7 @@ from lucyparser.exceptions import BaseLucyException
 from lucyparser.tree import BaseNode
 from lucyparser.parsing import Parser as LucyParser
 
-from ..utils import LuceneSearchException
+from lucyfer.utils import LuceneSearchException
 
 
 class CyrillicParser(LucyParser):
@@ -39,3 +39,10 @@ class BaseLuceneParserMixin:
         Parses lucyparsers tree to query tree
         """
         raise NotImplementedError()
+
+    @classmethod
+    def get_saved_search(cls, tree):
+        """
+        Add availability to use saved searches. For ex. you can save it in database and get it here.
+        """
+        return None

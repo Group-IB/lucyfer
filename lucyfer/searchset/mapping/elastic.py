@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import List
 
-from .base import MappingValue, Mapping
+from lucyfer.searchset.mapping.base import MappingValue, Mapping
 
 
 class ElasticMappingValue(MappingValue):

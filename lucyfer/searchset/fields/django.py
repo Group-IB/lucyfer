@@ -1,10 +1,9 @@
 from django.db.models import Q
 from lucyparser.tree import Operator
 
-from ...searchset.utils import FieldType
-from ...utils import LuceneSearchCastValueException
-
-from .base import BaseSearchField, negate_query_if_necessary
+from lucyfer.searchset.fields.base import BaseSearchField, negate_query_if_necessary
+from lucyfer.searchset.utils import FieldType
+from lucyfer.utils import LuceneSearchCastValueException
 
 
 class DjangoSearchFieldWithoutWildcard(BaseSearchField):

@@ -1,1 +1,0 @@
-name = "django_lucy"
