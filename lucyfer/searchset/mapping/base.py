@@ -2,6 +2,8 @@ from collections import OrderedDict, defaultdict
 from itertools import islice
 from typing import Type, Dict, List, Optional
 
+from lucyfer.settings import lucyfer_settings
+
 
 class MappingValue:
     """
@@ -31,14 +33,14 @@ class MappingValue:
         if not self.show_suggestions:
             return list()
 
+        if not lucyfer_settings.CACHE_SEARCH_VALUES:
+            return self._get_parsed_values(qs=qs, prefix=prefix)
+
         if self._cached_values is None:
             self._cached_values = defaultdict(dict)
 
         if not self._cached_values[cache_key].get(prefix):
-            values = self._get_available_values(qs=qs, prefix=prefix)
-
-            if self.escape_quotes_in_suggestions:
-                values = [v.replace("'", "\\'").replace('"', '\\"') for v in values]
+            values = self._get_parsed_values(qs=qs, prefix=prefix)
 
             if len(prefix) < self._cache_values_min_length:
                 return values
@@ -46,6 +48,14 @@ class MappingValue:
             self._cached_values[cache_key][prefix] = values
 
         return self._cached_values[cache_key][prefix]
+
+    def _get_parsed_values(self, qs, prefix):
+        values = self._get_available_values(qs=qs, prefix=prefix)
+
+        if self.escape_quotes_in_suggestions:
+            values = [v.replace("'", "\\'").replace('"', '\\"') for v in values]
+
+        return values
 
     def _get_available_values(self, qs, prefix):
         if callable(self.get_available_values_method):
