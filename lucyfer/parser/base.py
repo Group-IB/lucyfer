@@ -20,11 +20,7 @@ class BaseLuceneParserMixin:
         """
         Parses raw expression to query tree
         """
-
-        try:
-            tree = parse(string=raw_expression, parser_class=CyrillicParser)
-        except BaseLucyException:
-            raise LuceneSearchException()
+        tree = cls._get_tree_from_raw_expression(raw_expression=raw_expression)
 
         parsed_tree = cls._parse_tree(tree=tree)
 
@@ -46,3 +42,10 @@ class BaseLuceneParserMixin:
         Add availability to use saved searches. For ex. you can save it in database and get it here.
         """
         return None
+
+    @classmethod
+    def _get_tree_from_raw_expression(cls, raw_expression):
+        try:
+            return parse(string=raw_expression, parser_class=CyrillicParser)
+        except BaseLucyException:
+            raise LuceneSearchException()
