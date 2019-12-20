@@ -30,19 +30,22 @@ class DjangoSearchFieldWithoutWildcard(BaseSearchField):
 class DjangoSearchField(DjangoSearchFieldWithoutWildcard):
     DEFAULT_LOOKUP = "iexact"
 
+    def process_wildcard(self, value):
+        if value.startswith("*") and value.endswith("*"):
+            return value[1:-1], "icontains"
+        elif value.startswith("*"):
+            return value[1:], "iendswith"
+        elif value.endswith("*"):
+            return value[:-1], "istartswith"
+
+        return value, None
+
     def create_query_for_sources(self, condition):
         value = self.cast_value(condition.value)
 
-        if value.startswith("*") and value.endswith("*"):
-            lookup = "icontains"
-            value = value[1:-1]
-        elif value.startswith("*"):
-            lookup = "iendswith"
-            value = value[1:]
-        elif value.endswith("*"):
-            value = value[:-1]
-            lookup = "istartswith"
-        else:
+        value, lookup = self.process_wildcard(value=value)
+
+        if lookup is None:
             return super().create_query_for_sources(condition)
 
         if not value:
