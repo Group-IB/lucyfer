@@ -28,13 +28,15 @@ class DjangoSearchFieldWithoutWildcard(BaseSearchField):
 
 
 class DjangoWildcardMixin:
-    def process_wildcard(self, value, case_sensitive=False):
+    case_sensitive_wildcard = False
+
+    def process_wildcard(self, value):
         if value.startswith("*") and value.endswith("*"):
-            return value[1:-1], "contains" if case_sensitive else "icontains"
+            return value[1:-1], "contains" if self.case_sensitive_wildcard else "icontains"
         elif value.startswith("*"):
-            return value[1:], "endswith" if case_sensitive else "iendswith"
+            return value[1:], "endswith" if self.case_sensitive_wildcard else "iendswith"
         elif value.endswith("*"):
-            return value[:-1], "startswith" if case_sensitive else "istartswith"
+            return value[:-1], "startswith" if self.case_sensitive_wildcard else "istartswith"
 
         return value, None
 
