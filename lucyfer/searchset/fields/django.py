@@ -27,18 +27,20 @@ class DjangoSearchFieldWithoutWildcard(BaseSearchField):
         return self.create_query_for_sources(condition=condition)
 
 
-class DjangoSearchField(DjangoSearchFieldWithoutWildcard):
-    DEFAULT_LOOKUP = "iexact"
-
-    def process_wildcard(self, value):
+class DjangoWildcardMixin:
+    def process_wildcard(self, value, case_sensitive=False):
         if value.startswith("*") and value.endswith("*"):
-            return value[1:-1], "icontains"
+            return value[1:-1], "contains" if case_sensitive else "icontains"
         elif value.startswith("*"):
-            return value[1:], "iendswith"
+            return value[1:], "endswith" if case_sensitive else "iendswith"
         elif value.endswith("*"):
-            return value[:-1], "istartswith"
+            return value[:-1], "startswith" if case_sensitive else "istartswith"
 
         return value, None
+
+
+class DjangoSearchField(DjangoWildcardMixin, DjangoSearchFieldWithoutWildcard):
+    DEFAULT_LOOKUP = "iexact"
 
     def create_query_for_sources(self, condition):
         value = self.cast_value(condition.value)
