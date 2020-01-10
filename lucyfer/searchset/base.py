@@ -22,6 +22,8 @@ class SearchHelper:
     _full_mapping: Optional[Mapping] = None
     _raw_mapping = None
 
+    _full_exclude_from_mapping: Optional[List[str]] = None
+
     @classmethod
     def get_mapping(cls) -> List[str]:
         """
@@ -43,7 +45,19 @@ class SearchHelper:
 
     @classmethod
     def get_fields_to_exclude_from_mapping(cls) -> List[str]:
-        return cls.fields_to_exclude_from_mapping if cls.fields_to_exclude_from_mapping is not None else list()
+        if cls._full_exclude_from_mapping is None:
+
+            # defined by user
+            fields_to_exclude_from_mapping = cls.fields_to_exclude_from_mapping or []
+
+            # defined in searchset fields
+            for field_name, field in cls.get_field_name_to_field().items():
+                if field.exclude_sources_from_mapping:
+                    fields_to_exclude_from_mapping.extend(field.sources)
+
+            cls._full_exclude_from_mapping = list(set(fields_to_exclude_from_mapping))
+
+        return cls._full_exclude_from_mapping
 
     @classmethod
     def get_fields_to_exclude_from_suggestions(cls) -> List[str]:
@@ -95,8 +109,6 @@ class SearchHelper:
                                           show_suggestions=cls.show_suggestions and source not in suggestions_exclude,
                                           get_available_values_method=get_available_values_method,
                                           escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions)
-            else:
-                mapping_exclude.extend(field.sources)
 
         # update mapping from mapping in database/elastic/etc
         raw_mapping = cls.get_raw_mapping()
