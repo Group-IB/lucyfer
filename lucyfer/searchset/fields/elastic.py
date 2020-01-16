@@ -32,7 +32,7 @@ class ElasticSearchField(BaseSearchField):
     def _get_query_for_term(self, sources, lookup, value):
         query = None  # if set Q() as default it will be MatchAll() anytime
 
-        lookup = self._get_wildcard_or_lookup(value=value, lookup=lookup)
+        value, lookup = self._get_wildcard_or_lookup(value=value, lookup=lookup)
 
         for source in sources:
             if query is None:
@@ -51,7 +51,10 @@ class ElasticSearchField(BaseSearchField):
         return query
 
     def _get_wildcard_or_lookup(self, value, lookup):
-        return "wildcard" if "*" in value else lookup
+        if ("\\*" not in value) and ("*" in value):
+            return value.replace("\\\\", "\\"), "wildcard"
+        else:
+            return value, lookup
 
     @negate_query_if_necessary
     def get_query(self, condition):
@@ -60,7 +63,7 @@ class ElasticSearchField(BaseSearchField):
 
 class ElasticSearchFieldWithoutWildCard(ElasticSearchField):
     def _get_wildcard_or_lookup(self, value, lookup):
-        return lookup
+        return value, lookup
 
 
 class ElasticIntegerField(ElasticSearchFieldWithoutWildCard):
