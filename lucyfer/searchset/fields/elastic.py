@@ -52,7 +52,7 @@ class ElasticSearchField(BaseSearchField):
 
     def _get_wildcard_or_lookup(self, value, lookup):
         if ("\\*" not in value) and ("*" in value):
-            return value.replace("\\\\", "\\"), "wildcard"
+            return value.replace("\\\\", "\\").replace("\\", "\\\\"), "wildcard"
         else:
             return value, lookup
 
