@@ -55,7 +55,7 @@ class ElasticSearchField(BaseSearchField):
     def _get_wildcard_or_lookup(self, value, lookup):
         stars_indexes = [i.start() for i in re.finditer("\\*", value)]
 
-        if stars_indexes and (0 not in stars_indexes) and all(value[i - 1] != "\\" for i in stars_indexes):
+        if stars_indexes and ((0 in stars_indexes) or all(value[i - 1] != "\\" for i in stars_indexes)):
             return value.replace("\\\\", "\\").replace("\\", "\\\\"), "wildcard"
 
         return value, lookup
