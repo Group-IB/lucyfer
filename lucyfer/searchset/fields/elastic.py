@@ -1,3 +1,5 @@
+import re
+
 from elasticsearch_dsl import Q
 from elasticsearch_dsl.query import Range
 from lucyparser.tree import Operator
@@ -51,10 +53,12 @@ class ElasticSearchField(BaseSearchField):
         return query
 
     def _get_wildcard_or_lookup(self, value, lookup):
-        if ("\\*" not in value) and ("*" in value):
+        stars_indexes = [i.start() for i in re.finditer("\\*", value)]
+
+        if stars_indexes and (0 not in stars_indexes) and all(value[i - 1] != "\\" for i in stars_indexes):
             return value.replace("\\\\", "\\").replace("\\", "\\\\"), "wildcard"
-        else:
-            return value, lookup
+
+        return value, lookup
 
     @negate_query_if_necessary
     def get_query(self, condition):
