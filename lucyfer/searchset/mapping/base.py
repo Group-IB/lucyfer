@@ -1,6 +1,8 @@
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 from itertools import islice
-from typing import Type, Dict, List, Optional
+from typing import Type, List
+
+from django.core.cache import cache
 
 from lucyfer.settings import lucyfer_settings
 
@@ -11,10 +13,6 @@ class MappingValue:
     """
     name: str
     sources: List[str]
-
-    _cached_values: Optional[Dict[str, Dict[str, List[str]]]] = None
-    _max_cached_values_by_prefix = 10
-    _cache_values_min_length = 3
 
     def __init__(self, name: str,
                  field_type=None,
@@ -29,25 +27,24 @@ class MappingValue:
         self.get_available_values_method = get_available_values_method
         self.escape_quotes_in_suggestions = escape_quotes_in_suggestions
 
-    def get_values(self, qs, prefix='', cache_key=None) -> List[str]:
+    def get_values(self, qs, model_name, prefix='', cache_key=None) -> List[str]:
         if not self.show_suggestions:
             return list()
 
         if not lucyfer_settings.CACHE_SEARCH_VALUES:
             return self._get_parsed_values(qs=qs, prefix=prefix)
 
-        if self._cached_values is None:
-            self._cached_values = defaultdict(dict)
+        key = f"LUCYFER__{model_name}__{cache_key}__{prefix}"
 
-        if not self._cached_values[cache_key].get(prefix):
+        if not cache.get(key):
             values = self._get_parsed_values(qs=qs, prefix=prefix)
 
-            if len(prefix) < self._cache_values_min_length:
+            if len(prefix) < lucyfer_settings.CACHE_VALUES_MIN_LENGTH:
                 return values
 
-            self._cached_values[cache_key][prefix] = values
+            cache.set(key, values, lucyfer_settings.CACHE_TIME)
 
-        return self._cached_values[cache_key][prefix]
+        return cache.get(key)
 
     def _get_parsed_values(self, qs, prefix):
         values = self._get_available_values(qs=qs, prefix=prefix)
@@ -64,7 +61,7 @@ class MappingValue:
         else:
             values = self._get_values(qs, prefix)
 
-        return list(islice(values, self._max_cached_values_by_prefix))
+        return list(islice(values, lucyfer_settings.CACHE_MAX_VALUES_COUNT_FOR_ONE_PREFIX))
 
     def _get_values(self, qs, prefix: str) -> List[str]:
         raise NotImplementedError()
@@ -113,4 +110,4 @@ class Mapping(OrderedDict):
         if field_name not in self:
             return list()
 
-        return self[field_name].get_values(qs=qs, prefix=prefix, cache_key=cache_key)
+        return self[field_name].get_values(qs=qs, model_name=self.model.__name__, prefix=prefix, cache_key=cache_key)
