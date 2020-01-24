@@ -27,14 +27,14 @@ class MappingValue:
         self.get_available_values_method = get_available_values_method
         self.escape_quotes_in_suggestions = escape_quotes_in_suggestions
 
-    def get_values(self, qs, prefix='', cache_key=None) -> List[str]:
+    def get_values(self, qs, model_name, prefix='', cache_key=None) -> List[str]:
         if not self.show_suggestions:
             return list()
 
         if not lucyfer_settings.CACHE_SEARCH_VALUES:
             return self._get_parsed_values(qs=qs, prefix=prefix)
 
-        key = f"LUCYFER__TODO_SS__{cache_key}__{prefix}"
+        key = f"LUCYFER__{model_name}__{cache_key}__{prefix}"
 
         if not cache.get(key):
             values = self._get_parsed_values(qs=qs, prefix=prefix)
@@ -110,4 +110,4 @@ class Mapping(OrderedDict):
         if field_name not in self:
             return list()
 
-        return self[field_name].get_values(qs=qs, prefix=prefix, cache_key=cache_key)
+        return self[field_name].get_values(qs=qs, model_name=self.model.__name__, prefix=prefix, cache_key=cache_key)
