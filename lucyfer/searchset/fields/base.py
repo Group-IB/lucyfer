@@ -2,6 +2,8 @@ from typing import Dict, List
 
 from lucyparser.tree import Operator
 
+from lucyfer.settings import lucyfer_settings
+
 
 class BaseSearchField:
     """
@@ -17,6 +19,7 @@ class BaseSearchField:
                  show_suggestions=True,
                  get_available_values_method=None,
                  use_field_class_for_sources=True,
+                 use_cache_for_suggestions=None,
                  *args, **kwargs):
 
         sources = list() if sources is None else sources
@@ -26,6 +29,11 @@ class BaseSearchField:
         self.show_suggestions = show_suggestions
         self.use_field_class_for_sources = use_field_class_for_sources
         self._get_available_values_method = get_available_values_method
+
+        if use_cache_for_suggestions is None:
+            self.use_cache_for_suggestions = lucyfer_settings.CACHE_SEARCH_VALUES
+        else:
+            self.use_cache_for_suggestions = use_cache_for_suggestions
 
     def cast_value(self, value: str):
         """

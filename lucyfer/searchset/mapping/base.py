@@ -15,6 +15,7 @@ class MappingValue:
     sources: List[str]
 
     def __init__(self, name: str,
+                 use_cache_for_suggestions: bool,
                  field_type=None,
                  sources=None,
                  show_suggestions=True,
@@ -26,12 +27,13 @@ class MappingValue:
         self.show_suggestions = show_suggestions
         self.get_available_values_method = get_available_values_method
         self.escape_quotes_in_suggestions = escape_quotes_in_suggestions
+        self.use_cache_for_suggestions = use_cache_for_suggestions
 
     def get_values(self, qs, model_name, prefix='', cache_key=None) -> List[str]:
         if not self.show_suggestions:
             return list()
 
-        if not lucyfer_settings.CACHE_SEARCH_VALUES:
+        if not (self.use_cache_for_suggestions and lucyfer_settings.CACHE_SEARCH_VALUES):
             return self._get_parsed_values(qs=qs, prefix=prefix)
 
         key = f"LUCYFER__{model_name}__{cache_key}__{prefix}"
@@ -80,6 +82,7 @@ class Mapping(OrderedDict):
         super().__init__(*args, **kwargs)
 
     def add_value(self, name: str,
+                  use_cache_for_suggestions: bool,
                   field_type=None,
                   sources=None,
                   show_suggestions=True,
@@ -92,7 +95,8 @@ class Mapping(OrderedDict):
                                                  sources=sources,
                                                  show_suggestions=show_suggestions,
                                                  get_available_values_method=get_available_values_method,
-                                                 escape_quotes_in_suggestions=escape_quotes_in_suggestions
+                                                 escape_quotes_in_suggestions=escape_quotes_in_suggestions,
+                                                 use_cache_for_suggestions=use_cache_for_suggestions
                                                  )})
 
     def get_values(self, qs, field_name: str, prefix: str, cache_key="DEFAULT_KEY") -> List[str]:

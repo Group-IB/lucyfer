@@ -2,6 +2,7 @@ from typing import List, Optional, Dict, Any
 
 from lucyfer.searchset.mapping import Mapping
 from lucyfer.searchset.utils import FieldType
+from lucyfer.settings import lucyfer_settings
 from lucyfer.utils import fill_field_if_it_necessary
 
 
@@ -100,7 +101,8 @@ class SearchHelper:
                                   show_suggestions=(cls.show_suggestions and field.show_suggestions
                                                     and field_name not in suggestions_exclude),
                                   get_available_values_method=get_available_values_method,
-                                  escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions)
+                                  escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions,
+                                  use_cache_for_suggestions=field.use_cache_for_suggestions)
 
             if not field.exclude_sources_from_mapping:
                 if field.use_field_class_for_sources:
@@ -108,7 +110,8 @@ class SearchHelper:
                         mapping.add_value(name=source,
                                           show_suggestions=cls.show_suggestions and source not in suggestions_exclude,
                                           get_available_values_method=get_available_values_method,
-                                          escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions)
+                                          escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions,
+                                          use_cache_for_suggestions=field.use_cache_for_suggestions)
 
         # update mapping from mapping in database/elastic/etc
         raw_mapping = cls.get_raw_mapping()
@@ -120,12 +123,19 @@ class SearchHelper:
                 else:
                     field_instance = None
 
-                get_available_values_method = field_instance.get_available_values_method() if field_instance else None
+                if field_instance:
+                    get_available_values_method = field_instance.get_available_values_method()
+                    use_cache_for_suggestions = field_instance.use_cache_for_suggestions
+                else:
+                    get_available_values_method = None
+                    use_cache_for_suggestions = lucyfer_settings.CACHE_SEARCH_VALUES
+
                 mapping.add_value(name=name,
                                   field_type=field_type,
                                   show_suggestions=cls.show_suggestions and name not in suggestions_exclude,
                                   get_available_values_method=get_available_values_method,
-                                  escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions)
+                                  escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions,
+                                  use_cache_for_suggestions=use_cache_for_suggestions)
 
                 if field_instance is not None:
                     cls.append_field_source_to_search_field_instance(source=name,
