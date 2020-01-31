@@ -52,7 +52,10 @@ class MappingValue:
         values = self._get_available_values(qs=qs, prefix=prefix)
 
         if self.escape_quotes_in_suggestions:
-            values = [v.replace("'", "\\'").replace('"', '\\"') for v in values]
+            try:
+                values = [v.replace("'", "\\'").replace('"', '\\"') for v in values]
+            except TypeError:  # if value is not str
+                pass
 
         return values
 
