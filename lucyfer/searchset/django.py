@@ -10,6 +10,7 @@ from lucyfer.searchset.fields.django import DjangoSearchField, DjangoSearchField
 from lucyfer.searchset.mapping import DjangoMapping
 from lucyfer.searchset.utils import FieldType
 from lucyfer.parser import LuceneToDjangoParserMixin
+from lucyfer.utils import LuceneSearchException
 
 
 django_model_field_to_field_type = {
@@ -35,11 +36,14 @@ class DjangoSearchSet(LuceneToDjangoParserMixin, BaseSearchSet):
     _field_sources: Optional[List[str]] = None
 
     @classmethod
-    def filter(cls, queryset, search_terms):
+    def filter(cls, queryset, search_terms, raise_exception=False):
         query = cls.parse(raw_expression=search_terms)
         try:
             return queryset.filter(query)
         except FieldError:
+            if raise_exception:
+                raise LuceneSearchException()
+
             return queryset.none()
 
     # for search helper

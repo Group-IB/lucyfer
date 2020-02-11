@@ -5,7 +5,7 @@ from lucyfer.searchset.base import BaseSearchSet
 from lucyfer.searchset.fields.elastic import default_elastic_field_types_to_fields, ElasticSearchField
 from lucyfer.searchset.mapping import ElasticMapping
 from lucyfer.searchset.utils import FieldType
-
+from lucyfer.utils import LuceneSearchException
 
 elastic_data_type_to_field_type = {
     "long": FieldType.INTEGER,
@@ -25,9 +25,15 @@ class ElasticSearchSet(LuceneToElasticParserMixin, BaseSearchSet):
     _raw_type_to_field_type = elastic_data_type_to_field_type
 
     @classmethod
-    def filter(cls, search, search_terms):
+    def filter(cls, search, search_terms, raise_exception=False):
         query = cls.parse(raw_expression=search_terms)
-        return None if query is None else search.query(query)
+        if query is None:
+            if raise_exception:
+                raise LuceneSearchException()
+            else:
+                return None
+
+        return search.query(query)
 
     # for search helper
 
