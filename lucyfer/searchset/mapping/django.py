@@ -16,7 +16,13 @@ class DjangoMappingValue(MappingValue):
                 for source in self.sources
             ]
 
-        return list(set(qss.pop().union(*qss)))
+        if len(qss) == 0:
+            return []
+
+        if len(qss) > 1:
+            qss = qss.pop().union(*qss)
+
+        return list(set(qss))
 
 
 class DjangoMapping(Mapping):
