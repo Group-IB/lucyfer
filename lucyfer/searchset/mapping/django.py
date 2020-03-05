@@ -1,5 +1,6 @@
 from typing import List
 
+from django.db.models import QuerySet
 from lucyfer.searchset.mapping.base import MappingValue, Mapping
 
 
@@ -16,13 +17,14 @@ class DjangoMappingValue(MappingValue):
                 for source in self.sources
             ]
 
-        if len(qss) == 0:
+        if not qss:
             return []
 
-        if len(qss) > 1:
-            qss = qss.pop().union(*qss)
+        first = qss.pop()
+        if not isinstance(first, QuerySet):
+            return []
 
-        return list(set(qss))
+        return list(set(first.union(*qss)))
 
 
 class DjangoMapping(Mapping):
