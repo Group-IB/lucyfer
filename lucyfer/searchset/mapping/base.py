@@ -54,7 +54,7 @@ class MappingValue:
         if self.escape_quotes_in_suggestions:
             try:
                 values = [v.replace("'", "\\'").replace('"', '\\"') for v in values]
-            except TypeError:  # if value is not str
+            except (AttributeError, TypeError):  # if value is not str
                 pass
 
         return values
