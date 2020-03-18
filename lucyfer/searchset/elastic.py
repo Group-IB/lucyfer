@@ -13,7 +13,7 @@ elastic_data_type_to_field_type = {
     "short": FieldType.INTEGER,
     "double": FieldType.FLOAT,
     "float": FieldType.FLOAT,
-    "boolean": FieldType.NULL_BOOLEAN,
+    "boolean": FieldType.BOOLEAN,
 }
 
 
