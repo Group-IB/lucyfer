@@ -8,7 +8,13 @@ from lucyfer.searchset.fields import DjangoCharField, DjangoIntegerField, Django
 from tests.base import TestParsing, LucyferTestCase
 
 
+class Meta:
+    fields = []
+
+
 class Model:
+    _meta = Meta()
+
     class objects:
         @classmethod
         def filter(cls, *args, **kwargs):
@@ -154,7 +160,7 @@ class TestMapping(LucyferTestCase):
             b = DjangoFloatField(sources=["c"])
 
             @classmethod
-            def get_raw_mapping(cls):
+            def _get_raw_mapping(cls):
                 return dict()
 
             class Meta:
@@ -171,7 +177,7 @@ class TestMapping(LucyferTestCase):
             fields_to_exclude_from_mapping = ["b"]
 
             @classmethod
-            def get_raw_mapping(cls):
+            def _get_raw_mapping(cls):
                 return dict()
 
             class Meta:
@@ -186,7 +192,7 @@ class TestMapping(LucyferTestCase):
             b = DjangoFloatField(sources=["c"], exclude_sources_from_mapping=True)
 
             @classmethod
-            def get_raw_mapping(cls):
+            def _get_raw_mapping(cls):
                 return dict()
 
             class Meta:

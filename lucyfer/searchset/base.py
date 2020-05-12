@@ -1,10 +1,13 @@
 from typing import List, Optional, Dict, Any, Type
+import warnings
+
+from django.utils.decorators import classproperty
 
 from lucyfer.searchset.fields import BaseSearchField
 from lucyfer.searchset.mapping import Mapping
+from lucyfer.searchset.storage import SearchSetStorage
 from lucyfer.searchset.utils import FieldType
 from lucyfer.settings import lucyfer_settings
-from lucyfer.utils import fill_field_if_it_necessary
 
 
 class BaseSearchSetMetaClass(type):
@@ -17,6 +20,9 @@ class BaseSearchSetMetaClass(type):
 
         field_name_to_field = mcs.get_field_name_to_field(base_field_class=searchset._field_base_class, attrs=attrs)
         mcs.validate_field_name_to_field(field_name_to_field=field_name_to_field, searchset_name=name)
+
+        storage = SearchSetStorage(field_name_to_field=field_name_to_field, searchset_class=searchset)
+        setattr(searchset, "storage", storage)
 
         return searchset
 
@@ -44,9 +50,6 @@ class BaseSearchSetMetaClass(type):
 class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
     _field_base_class = None
 
-    _field_name_to_search_field_instance: Optional[Dict[str, _field_base_class]] = None
-    _field_source_to_search_field_instance: Optional[Dict[str, _field_base_class]] = None
-
     # default field uses for creating query for fields not defined in searchset class
     _default_field = None
 
@@ -63,9 +66,13 @@ class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
     _mapping_class = None
 
     _full_mapping: Optional[Mapping] = None
-    _raw_mapping = None
 
     _full_exclude_from_mapping: Optional[List[str]] = None
+
+    @classproperty
+    def _field_source_to_search_field_instance(cls):
+        warnings.warn("Field will be deprecated soon. Use cls.storage.field_source_to_field instead")
+        return cls.storage.field_source_to_field
 
     @classmethod
     def get_fields_values(cls, qs, field_name, prefix='', cache_key=None) -> List[str]:
@@ -82,7 +89,7 @@ class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
             fields_to_exclude_from_mapping = cls.fields_to_exclude_from_mapping or []
 
             # defined in searchset fields
-            for field_name, field in cls.get_field_name_to_field().items():
+            for field_name, field in cls.storage.field_name_to_field.items():
                 if field.exclude_sources_from_mapping:
                     fields_to_exclude_from_mapping.extend(field.sources)
 
@@ -99,9 +106,8 @@ class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
         """
         Caches raw mapping and return it
         """
-        if cls._raw_mapping is None:
-            cls._raw_mapping = cls._get_raw_mapping()
-        return cls._raw_mapping
+        warnings.warn("Method will be deprecated soon. Use cls.storage.raw_mapping instead")
+        return cls.storage.raw_mapping
 
     @classmethod
     def get_full_mapping(cls):
@@ -121,7 +127,7 @@ class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
         mapping = cls._mapping_class(cls.Meta.model)
 
         # create mapping values from fields in searchset class
-        for field_name, field in cls.get_field_name_to_field().items():
+        for field_name, field in cls.storage.field_name_to_field.items():
 
             get_available_values_method = field.get_available_values_method()
 
@@ -144,9 +150,7 @@ class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
                                           use_cache_for_suggestions=field.use_cache_for_suggestions)
 
         # update mapping from mapping in database/elastic/etc
-        raw_mapping = cls.get_raw_mapping()
-
-        for name, field_type in raw_mapping.items():
+        for name, field_type in cls.storage.raw_mapping.items():
             if name not in mapping_exclude:
                 if field_type in cls._field_type_to_field_class:
                     field_instance = cls._field_type_to_field_class[field_type]()
@@ -167,10 +171,6 @@ class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
                                   escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions,
                                   use_cache_for_suggestions=use_cache_for_suggestions)
 
-                if field_instance is not None:
-                    cls.append_field_source_to_search_field_instance(source=name,
-                                                                     instance=field_instance)
-
         cls._full_mapping = mapping
 
     @classmethod
@@ -185,27 +185,8 @@ class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
         """
         Returns dictionary with fieldnames defined in searchset class and field instances
         """
-
-        if cls._field_name_to_search_field_instance is None:
-            cls._field_name_to_search_field_instance = dict()
-            cls._field_source_to_search_field_instance = dict()
-
-            for name, _cls in cls.__dict__.items():
-                if isinstance(_cls, cls._field_base_class):
-
-                    cls._field_name_to_search_field_instance[name] = _cls
-
-                    if _cls.use_field_class_for_sources and not _cls.exclude_sources_from_mapping and _cls.sources:
-                        for field_source in _cls.sources:
-                            cls.append_field_source_to_search_field_instance(source=field_source,
-                                                                             instance=_cls.__class__())
-
-        return cls._field_name_to_search_field_instance
-
-    @classmethod
-    @fill_field_if_it_necessary({"_field_source_to_search_field_instance": dict})
-    def append_field_source_to_search_field_instance(cls, source, instance):
-        cls._field_source_to_search_field_instance[source] = instance
+        warnings.warn("Method will be deprecated soon. Use cls.storage.field_name_to_field instead")
+        return cls.storage.field_name_to_field
 
     @classmethod
     def get_query_for_field(cls, condition):
@@ -213,11 +194,11 @@ class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
         Returns Q object with query for parsed condition
         """
 
-        field = cls.get_field_name_to_field().get(condition.name)
+        field = cls.storage.field_name_to_field.get(condition.name)
 
         # if field not presented in hardcoded fields in searchset class maybe it presented in some field sources
         if field is None:
-            field = cls._field_source_to_search_field_instance.get(condition.name)
+            field = cls.storage.field_source_to_field.get(condition.name)
 
         # if fields is not source we can try to get field instance by field type from mapping
         if field is None:
