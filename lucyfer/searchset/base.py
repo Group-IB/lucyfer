@@ -6,12 +6,19 @@ from lucyfer.settings import lucyfer_settings
 from lucyfer.utils import fill_field_if_it_necessary
 
 
-# todo merge those classes
+class BaseSearchSet:
+    _field_base_class = None
 
-class SearchHelper:
-    """
-    SearchHelperMixin provides possibility to get mapping and search helpers for user-friendly search API
-    """
+    _field_name_to_search_field_instance: Optional[Dict[str, _field_base_class]] = None
+    _field_source_to_search_field_instance: Optional[Dict[str, _field_base_class]] = None
+
+    # default field uses for creating query for fields not defined in searchset class
+    _default_field = None
+
+    # provides possibility to use auto cast for boolean/integer/etc fields by field classes usage
+    # that means we analyze elastic mapping data types or django models to match it to field classes
+    _field_type_to_field_class: Optional[Dict[int, _field_base_class]] = None
+    _raw_type_to_field_type: Optional[Dict[Any, int]] = None
 
     fields_to_exclude_from_mapping: Optional[List[str]] = None
     fields_to_exclude_from_suggestions: Optional[List[str]] = None
@@ -149,21 +156,6 @@ class SearchHelper:
         That method allows to get mapping in raw format. It have to be reimplemented
         """
         raise NotImplementedError()
-
-
-class BaseSearchSet(SearchHelper):
-    _field_base_class = None
-
-    _field_name_to_search_field_instance: Optional[Dict[str, _field_base_class]] = None
-    _field_source_to_search_field_instance: Optional[Dict[str, _field_base_class]] = None
-
-    # default field uses for creating query for fields not defined in searchset class
-    _default_field = None
-
-    # provides possibility to use auto cast for boolean/integer/etc fields by field classes usage
-    # that means we analyze elastic mapping data types or django models to match it to field classes
-    _field_type_to_field_class: Optional[Dict[int, _field_base_class]] = None
-    _raw_type_to_field_type: Optional[Dict[Any, int]] = None
 
     @classmethod
     def get_field_name_to_field(cls):
