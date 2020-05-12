@@ -1,12 +1,47 @@
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Type
 
+from lucyfer.searchset.fields import BaseSearchField
 from lucyfer.searchset.mapping import Mapping
 from lucyfer.searchset.utils import FieldType
 from lucyfer.settings import lucyfer_settings
 from lucyfer.utils import fill_field_if_it_necessary
 
 
-class BaseSearchSet:
+class BaseSearchSetMetaClass(type):
+    def __new__(mcs, name, bases, attrs):
+        # if we got an base searchset class
+        if not bases:
+            return super().__new__(mcs, name, bases, attrs)
+
+        searchset = super().__new__(mcs, name, bases, attrs)
+
+        field_name_to_field = mcs.get_field_name_to_field(base_field_class=searchset._field_base_class, attrs=attrs)
+        mcs.validate_field_name_to_field(field_name_to_field=field_name_to_field, searchset_name=name)
+
+        return searchset
+
+    @classmethod
+    def get_field_name_to_field(mcs,
+                                base_field_class: Type[BaseSearchField],
+                                attrs: Dict[str, Any],
+                                ) -> Dict[str, BaseSearchField]:
+        """
+        Returns dictionary with fields defined in searchset (field name: field instance)
+        """
+        return {
+            name: instance for name, instance in attrs.items() if isinstance(instance, base_field_class)
+        }
+
+    @classmethod
+    def validate_field_name_to_field(cls, field_name_to_field, searchset_name):
+        for name, field in field_name_to_field.items():
+            if field.sources and len(field.sources) == 1:
+                assert field.sources[0] != name, \
+                    f"Defining field source equals to field name in searchset doesn't make sense. " \
+                    f"You have to remove sources from field '{name}' in {searchset_name}"
+
+
+class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
     _field_base_class = None
 
     _field_name_to_search_field_instance: Optional[Dict[str, _field_base_class]] = None
@@ -33,13 +68,9 @@ class BaseSearchSet:
     _full_exclude_from_mapping: Optional[List[str]] = None
 
     @classmethod
-    def get_mapping_to_suggestion(cls) -> Dict[str, bool]:
-        return {k: v.show_suggestions for k, v in cls.get_full_mapping().items()}
-
-    @classmethod
     def get_fields_values(cls, qs, field_name, prefix='', cache_key=None) -> List[str]:
         """
-        Returns search helpers for field by prefix
+        Returns search helpers for field by prefix.
         """
         return cls.get_full_mapping().get_values(qs=qs, field_name=field_name, prefix=prefix, cache_key=cache_key)
 
@@ -154,6 +185,7 @@ class BaseSearchSet:
         """
         Returns dictionary with fieldnames defined in searchset class and field instances
         """
+
         if cls._field_name_to_search_field_instance is None:
             cls._field_name_to_search_field_instance = dict()
             cls._field_source_to_search_field_instance = dict()
@@ -165,7 +197,8 @@ class BaseSearchSet:
 
                     if _cls.use_field_class_for_sources and not _cls.exclude_sources_from_mapping and _cls.sources:
                         for field_source in _cls.sources:
-                            cls.append_field_source_to_search_field_instance(source=field_source, instance=_cls.__class__())
+                            cls.append_field_source_to_search_field_instance(source=field_source,
+                                                                             instance=_cls.__class__())
 
         return cls._field_name_to_search_field_instance
 
@@ -188,7 +221,6 @@ class BaseSearchSet:
 
         # if fields is not source we can try to get field instance by field type from mapping
         if field is None:
-
             # check field type
             field_type = getattr(cls.get_full_mapping().get(condition.name), "field_type", None)
 

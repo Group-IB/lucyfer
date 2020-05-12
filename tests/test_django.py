@@ -239,40 +239,6 @@ class TestSearchHelpers(LucyferTestCase):
 
         self.assertEqual(list(), MyNewSearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
 
-    def test_get_mapping_with_suggestion_option(self):
-        class MySearchSet(DjangoSearchSet):
-            a = DjangoCharField(show_suggestions=False)
-            b = DjangoCharField()
-
-            @classmethod
-            def get_raw_mapping(cls):
-                return {k: None for k in ["c", "d"]}
-
-            class Meta:
-                model = Model
-
-            fields_to_exclude_from_suggestions = ["d"]
-
-        self.assertEqual({"a": False, "b": True, "c": True, "d": False}, MySearchSet.get_mapping_to_suggestion())
-
-    def test_turn_off_suggestions(self):
-        class MySearchSet(DjangoSearchSet):
-            a = DjangoCharField(show_suggestions=False)
-            b = DjangoCharField()
-
-            @classmethod
-            def get_raw_mapping(cls):
-                return {k: None for k in ["c", "d"]}
-
-            class Meta:
-                model = Model
-
-            fields_to_exclude_from_suggestions = ["d"]
-
-            show_suggestions = False
-
-        self.assertEqual({"a": False, "b": False, "c": False, "d": False}, MySearchSet.get_mapping_to_suggestion())
-
     def test_get_available_values(self):
         def expected_available_values():
             return ['ululu', "xxxx"]
