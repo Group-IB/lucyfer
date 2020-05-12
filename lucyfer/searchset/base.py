@@ -33,14 +33,6 @@ class BaseSearchSet:
     _full_exclude_from_mapping: Optional[List[str]] = None
 
     @classmethod
-    def get_mapping(cls) -> List[str]:
-        """
-        Returns full mapping with handwritten fields in search set class and their sources
-        Except of excluded fields/sources
-        """
-        return list(cls.get_full_mapping().keys())
-
-    @classmethod
     def get_mapping_to_suggestion(cls) -> Dict[str, bool]:
         return {k: v.show_suggestions for k, v in cls.get_full_mapping().items()}
 

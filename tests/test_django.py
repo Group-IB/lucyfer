@@ -160,7 +160,7 @@ class TestMapping(LucyferTestCase):
             class Meta:
                 model = None
 
-        mapping = NotExcludingFieldsSearchSet.get_mapping()
+        mapping = list(NotExcludingFieldsSearchSet.get_full_mapping().keys())
         self.assertSequenceEqual(list(mapping), ["a", "b", "c"])
 
     def test_exclude_fields_in_searchset_class(self):
@@ -177,7 +177,7 @@ class TestMapping(LucyferTestCase):
             class Meta:
                 model = None
 
-        mapping = ExcludeFieldsInClassSearchSet.get_mapping()
+        mapping = list(ExcludeFieldsInClassSearchSet.get_full_mapping().keys())
         self.assertSequenceEqual(list(mapping), ["a", "c"])
 
     def test_exclude_sources_in_field(self):
@@ -192,7 +192,7 @@ class TestMapping(LucyferTestCase):
             class Meta:
                 model = None
 
-        mapping = ExcludeSourcesInFieldsSearchSet.get_mapping()
+        mapping = list(ExcludeSourcesInFieldsSearchSet.get_full_mapping().keys())
         self.assertSequenceEqual(list(mapping), ["a", "b"])
 
 
