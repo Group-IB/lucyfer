@@ -1,3 +1,3 @@
 from .base import Mapping
-from .django import DjangoMapping, DjangoMappingValue
-from .elastic import ElasticMappingValue, ElasticMapping
+from .django import DjangoMapping
+from .elastic import ElasticMapping

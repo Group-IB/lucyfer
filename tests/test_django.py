@@ -203,7 +203,7 @@ class TestMapping(LucyferTestCase):
 
 
 class TestSearchHelpers(LucyferTestCase):
-    django_mapping_get_values = "lucyfer.searchset.mapping.DjangoMappingValue._get_values"
+    django_mapping_get_values = "lucyfer.searchset.mapping.values.DjangoMappingValue._get_values"
 
     def test_get_fields_values(self):
         class MySearchSet(DjangoSearchSet):
