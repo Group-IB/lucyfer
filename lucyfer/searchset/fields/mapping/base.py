@@ -6,39 +6,22 @@ from django.core.cache import cache
 from lucyfer.settings import lucyfer_settings
 
 
-class MappingValue:
+class MappingMixin:
     """
     Class provides interface to get search helpers for field by some prefix with cache
     """
-    name: str
-    sources: List[str]
 
-    def __init__(self, name: str,
-                 use_cache_for_suggestions: bool,
-                 field_type=None,
-                 sources=None,
-                 show_suggestions=True,
-                 get_available_values_method=None,
-                 escape_quotes_in_suggestions=True):
-        self.name = name
-        self.field_type = field_type
-        self.sources = sources if sources else [name]
-        self.show_suggestions = show_suggestions
-        self.get_available_values_method = get_available_values_method
-        self.escape_quotes_in_suggestions = escape_quotes_in_suggestions
-        self.use_cache_for_suggestions = use_cache_for_suggestions
-
-    def get_values(self, qs, model_name, prefix='', cache_key=None) -> List[str]:
+    def get_values(self, qs, model_name, escape_quotes_in_suggestions: bool, prefix='', cache_key="DEFAULT_KEY") -> List[str]:
         if not self.show_suggestions:
             return list()
 
         if not (self.use_cache_for_suggestions and lucyfer_settings.CACHE_SEARCH_VALUES):
-            return self._get_parsed_values(qs=qs, prefix=prefix)
+            return self._get_parsed_values(qs=qs, prefix=prefix, escape_quotes_in_suggestions=escape_quotes_in_suggestions)
 
         key = f"LUCYFER__{model_name}__{cache_key}__{prefix}"
 
         if not cache.get(key):
-            values = self._get_parsed_values(qs=qs, prefix=prefix)
+            values = self._get_parsed_values(qs=qs, prefix=prefix, escape_quotes_in_suggestions=escape_quotes_in_suggestions)
 
             if len(prefix) < lucyfer_settings.CACHE_VALUES_MIN_LENGTH:
                 return values
@@ -47,10 +30,10 @@ class MappingValue:
 
         return cache.get(key)
 
-    def _get_parsed_values(self, qs, prefix):
+    def _get_parsed_values(self, qs, prefix, escape_quotes_in_suggestions):
         values = self._get_available_values(qs=qs, prefix=prefix)
 
-        if self.escape_quotes_in_suggestions:
+        if escape_quotes_in_suggestions:
             try:
                 values = [v.replace("'", "\\'").replace('"', '\\"') for v in values]
             except (AttributeError, TypeError):  # if value is not str
@@ -59,8 +42,11 @@ class MappingValue:
         return values
 
     def _get_available_values(self, qs, prefix):
-        if callable(self.get_available_values_method):
-            available_values = self.get_available_values_method()
+        # todo args kwargs
+        method = self.get_available_values_method()
+
+        if callable(method):
+            available_values = method()
             values = (v for v in available_values if prefix in v)
         else:
             values = self._get_values(qs, prefix)

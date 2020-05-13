@@ -2,10 +2,10 @@ from typing import List
 
 from django.db.models import QuerySet
 
-from lucyfer.searchset.mapping.values.base import MappingValue
+from lucyfer.searchset.fields.mapping.base import MappingMixin
 
 
-class DjangoMappingValue(MappingValue):
+class DjangoMappingMixin(MappingMixin):
     def _get_values(self, qs, prefix: str) -> List[str]:
         if prefix:
             qss = [

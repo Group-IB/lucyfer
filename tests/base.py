@@ -4,6 +4,7 @@ from django.conf import settings
 
 
 class LucyferTestCase(TestCase):
+    # todo delete
     @classmethod
     def setUpClass(cls):
         super().setUpClass()

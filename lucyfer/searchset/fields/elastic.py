@@ -5,11 +5,12 @@ from elasticsearch_dsl.query import Range
 from lucyparser.tree import Operator
 
 from lucyfer.searchset.fields.base import BaseSearchField, negate_query_if_necessary
+from lucyfer.searchset.fields.mapping import ElasticMappingMixin
 from lucyfer.searchset.utils import FieldType
 from lucyfer.utils import LuceneSearchCastValueException
 
 
-class ElasticSearchField(BaseSearchField):
+class ElasticSearchField(ElasticMappingMixin, BaseSearchField):
     DEFAULT_LOOKUP = "term"
 
     OPERATOR_TO_LOOKUP = {

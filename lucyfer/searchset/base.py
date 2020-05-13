@@ -1,13 +1,11 @@
-from typing import List, Optional, Dict, Any, Type
+from typing import List, Optional, Dict, Any, Type, Set
 import warnings
 
 from django.utils.decorators import classproperty
 
 from lucyfer.searchset.fields import BaseSearchField
-from lucyfer.searchset.mapping import Mapping
 from lucyfer.searchset.storage import SearchSetStorage
 from lucyfer.searchset.utils import FieldType
-from lucyfer.settings import lucyfer_settings
 
 
 class BaseSearchSetMetaClass(type):
@@ -17,20 +15,30 @@ class BaseSearchSetMetaClass(type):
             return super().__new__(mcs, name, bases, attrs)
 
         meta = attrs.pop("Meta", None)
-        if meta is None:
-            warnings.warn("Not defining Meta class will be deprecated soon.")
+        assert meta, "Not defining Meta class is deprecated."
 
         searchset = super().__new__(mcs, name, bases, attrs)
-
-        if meta:
-            setattr(searchset, "_meta", meta)
-
-        searchset = super().__new__(mcs, name, bases, attrs)
+        setattr(searchset, "_meta", meta)
 
         field_name_to_field = mcs.get_field_name_to_field(base_field_class=searchset._field_base_class, attrs=attrs)
         mcs.validate_field_name_to_field(field_name_to_field=field_name_to_field, searchset_name=name)
 
-        storage = SearchSetStorage(field_name_to_field=field_name_to_field, searchset_class=searchset)
+        fields_to_exclude_from_mapping = mcs.get_fields_to_exclude_from_mapping(
+            searchset_fields_to_exclude_from_mapping=searchset.fields_to_exclude_from_mapping or [],
+            field_name_to_field=field_name_to_field,
+        )
+
+        fields_to_exclude_from_suggestions = mcs.get_fields_to_exclude_from_suggestions(
+            searchset_fields_to_exclude_from_suggestions=searchset.fields_to_exclude_from_suggestions or [],
+            field_name_to_field=field_name_to_field,
+        )
+
+        storage = SearchSetStorage(
+            field_name_to_field=field_name_to_field,
+            searchset_class=searchset,
+            fields_to_exclude_from_mapping=fields_to_exclude_from_mapping,
+            fields_to_exclude_from_suggestions=fields_to_exclude_from_suggestions,
+        )
         setattr(searchset, "storage", storage)
 
         return searchset
@@ -42,18 +50,39 @@ class BaseSearchSetMetaClass(type):
                                 ) -> Dict[str, BaseSearchField]:
         """
         Returns dictionary with fields defined in searchset (field name: field instance)
+
+        :param base_field_class: all fields must be inheritors of that class
+        :param attrs: searchset class attributes
         """
-        return {
-            name: instance for name, instance in attrs.items() if isinstance(instance, base_field_class)
-        }
+        return {name: instance for name, instance in attrs.items() if isinstance(instance, base_field_class)}
 
     @classmethod
-    def validate_field_name_to_field(cls, field_name_to_field, searchset_name):
+    def validate_field_name_to_field(cls,
+                                     field_name_to_field: Dict[str, BaseSearchField],
+                                     searchset_name: str) -> None:
         for name, field in field_name_to_field.items():
             if field.sources and len(field.sources) == 1:
                 assert field.sources[0] != name, \
                     f"Defining field source equals to field name in searchset doesn't make sense. " \
                     f"You have to remove sources from field '{name}' in {searchset_name}"
+
+    @classmethod
+    def get_fields_to_exclude_from_mapping(mcs,
+                                           searchset_fields_to_exclude_from_mapping: List[str],
+                                           field_name_to_field: Dict[str, BaseSearchField]) -> Set[str]:
+        for name, field in field_name_to_field.items():
+            if field.exclude_sources_from_mapping:
+                searchset_fields_to_exclude_from_mapping.extend(field.sources)
+        return set(searchset_fields_to_exclude_from_mapping)
+
+    @classmethod
+    def get_fields_to_exclude_from_suggestions(mcs,
+                                               searchset_fields_to_exclude_from_suggestions: List[str],
+                                               field_name_to_field: Dict[str, BaseSearchField]) -> Set[str]:
+        searchset_fields_to_exclude_from_suggestions.extend(
+            [name for name, field in field_name_to_field.items() if not field.show_suggestions]
+        )
+        return set(searchset_fields_to_exclude_from_suggestions)
 
 
 class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
@@ -62,21 +91,17 @@ class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
     # default field uses for creating query for fields not defined in searchset class
     _default_field = None
 
-    # provides possibility to use auto cast for boolean/integer/etc fields by field classes usage
-    # that means we analyze elastic mapping data types or django models to match it to field classes
-    _field_type_to_field_class: Optional[Dict[int, _field_base_class]] = None
-    _raw_type_to_field_type: Optional[Dict[Any, int]] = None
-
+    # TODO move it to Meta
     fields_to_exclude_from_mapping: Optional[List[str]] = None
     fields_to_exclude_from_suggestions: Optional[List[str]] = None
     show_suggestions = True
     escape_quotes_in_suggestions = True
 
-    _mapping_class = None
-
-    _full_mapping: Optional[Mapping] = None
-
-    _full_exclude_from_mapping: Optional[List[str]] = None
+    # provides possibility to use auto cast for boolean/integer/etc fields by field classes usage
+    # that means we analyze elastic mapping data types or django models to match it to field classes
+    # TODO property
+    _field_type_to_field_class: Optional[Dict[int, _field_base_class]] = None
+    _raw_type_to_field_type: Optional[Dict[Any, int]] = None
 
     @classproperty
     def _field_source_to_search_field_instance(cls):
@@ -84,103 +109,44 @@ class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
         return cls.storage.field_source_to_field
 
     @classmethod
-    def get_fields_values(cls, qs, field_name, prefix='', cache_key=None) -> List[str]:
+    def get_fields_values(cls, qs, field_name, prefix='', cache_key="DEFAULT_KEY") -> List[str]:
         """
         Returns search helpers for field by prefix.
+
+        :param qs: queryset with additional filters or els search
+        :param field_name: field name for get values
+        :param prefix: prefix for searching values
+        :param cache_key: additional argument to use possibility to cache different values for different users for ex.
+
+        :return: list of values
         """
-        return cls.get_full_mapping().get_values(qs=qs, field_name=field_name, prefix=prefix, cache_key=cache_key)
+        if not cls.show_suggestions:
+            return list()
+
+        return cls.storage.field_source_to_field.get(field_name, cls._default_field()).get_values(
+            qs=qs, prefix=prefix, cache_key=cache_key, model_name=cls._meta.model.__name__,
+            escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions
+        )
 
     @classmethod
-    def get_fields_to_exclude_from_mapping(cls) -> List[str]:
-        if cls._full_exclude_from_mapping is None:
-
-            # defined by user
-            fields_to_exclude_from_mapping = cls.fields_to_exclude_from_mapping or []
-
-            # defined in searchset fields
-            for field_name, field in cls.storage.field_name_to_field.items():
-                if field.exclude_sources_from_mapping:
-                    fields_to_exclude_from_mapping.extend(field.sources)
-
-            cls._full_exclude_from_mapping = list(set(fields_to_exclude_from_mapping))
-
-        return cls._full_exclude_from_mapping
+    def get_fields_to_exclude_from_mapping(cls) -> Set[str]:
+        warnings.warn("Deprecated! Use cls.storage.fields_to_exclude_from_mapping instead")
+        return cls.storage.fields_to_exclude_from_mapping
 
     @classmethod
-    def get_fields_to_exclude_from_suggestions(cls) -> List[str]:
-        return cls.fields_to_exclude_from_suggestions if cls.fields_to_exclude_from_suggestions is not None else list()
+    def get_fields_to_exclude_from_suggestions(cls) -> Set[str]:
+        warnings.warn("Deprecated! Use cls.storage.fields_to_exclude_from_suggestions instead")
+        return cls.storage.fields_to_exclude_from_suggestions
 
     @classmethod
-    def get_raw_mapping(cls) -> Dict[str, FieldType]:
-        """
-        Caches raw mapping and return it
-        """
+    def get_raw_mapping(cls) -> Dict[str, Optional[FieldType]]:
         warnings.warn("Method will be deprecated soon. Use cls.storage.raw_mapping instead")
         return cls.storage.raw_mapping
 
     @classmethod
     def get_full_mapping(cls):
-        if cls._full_mapping is None:
-            cls._fill_mapping()
-        return cls._full_mapping
-
-    @classmethod
-    def _fill_mapping(cls):
-        """
-        Fill mapping extended by handwritten fields and its sources
-        """
-
-        mapping_exclude = cls.get_fields_to_exclude_from_mapping()
-        suggestions_exclude = cls.get_fields_to_exclude_from_suggestions()
-
-        mapping = cls._mapping_class(cls.Meta.model)
-
-        # create mapping values from fields in searchset class
-        for field_name, field in cls.storage.field_name_to_field.items():
-
-            get_available_values_method = field.get_available_values_method()
-
-            if field_name not in mapping_exclude:
-                mapping.add_value(name=field_name,
-                                  sources=field.sources,
-                                  show_suggestions=(cls.show_suggestions and field.show_suggestions
-                                                    and field_name not in suggestions_exclude),
-                                  get_available_values_method=get_available_values_method,
-                                  escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions,
-                                  use_cache_for_suggestions=field.use_cache_for_suggestions)
-
-            if not field.exclude_sources_from_mapping:
-                if field.use_field_class_for_sources:
-                    for source in field.sources:
-                        mapping.add_value(name=source,
-                                          show_suggestions=cls.show_suggestions and source not in suggestions_exclude,
-                                          get_available_values_method=get_available_values_method,
-                                          escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions,
-                                          use_cache_for_suggestions=field.use_cache_for_suggestions)
-
-        # update mapping from mapping in database/elastic/etc
-        for name, field_type in cls.storage.raw_mapping.items():
-            if name not in mapping_exclude:
-                if field_type in cls._field_type_to_field_class:
-                    field_instance = cls._field_type_to_field_class[field_type]()
-                else:
-                    field_instance = None
-
-                if field_instance:
-                    get_available_values_method = field_instance.get_available_values_method()
-                    use_cache_for_suggestions = field_instance.use_cache_for_suggestions
-                else:
-                    get_available_values_method = None
-                    use_cache_for_suggestions = lucyfer_settings.CACHE_SEARCH_VALUES
-
-                mapping.add_value(name=name,
-                                  field_type=field_type,
-                                  show_suggestions=cls.show_suggestions and name not in suggestions_exclude,
-                                  get_available_values_method=get_available_values_method,
-                                  escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions,
-                                  use_cache_for_suggestions=use_cache_for_suggestions)
-
-        cls._full_mapping = mapping
+        warnings.warn("Method will be deprecated soon. Use cls.storage.mapping instead")
+        return cls.storage.mapping
 
     @classmethod
     def _get_raw_mapping(cls) -> Dict[str, FieldType]:
@@ -202,19 +168,5 @@ class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
         """
         Returns Q object with query for parsed condition
         """
-
-        field = cls.storage.field_name_to_field.get(condition.name)
-
-        # if field not presented in hardcoded fields in searchset class maybe it presented in some field sources
-        if field is None:
-            field = cls.storage.field_source_to_field.get(condition.name)
-
-        # if fields is not source we can try to get field instance by field type from mapping
-        if field is None:
-            # check field type
-            field_type = getattr(cls.get_full_mapping().get(condition.name), "field_type", None)
-
-            field = cls._field_type_to_field_class.get(field_type, cls._default_field)()
-
-        # and finally create a query
+        field = cls.storage.field_source_to_field.get(condition.name, cls._default_field())
         return field.get_query(condition)

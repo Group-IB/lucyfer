@@ -1,10 +1,10 @@
 from collections import defaultdict
 from typing import List
 
-from lucyfer.searchset.mapping.values.base import MappingValue
+from lucyfer.searchset.fields.mapping.base import MappingMixin
 
 
-class ElasticMappingValue(MappingValue):
+class ElasticMappingMixin(MappingMixin):
     def _get_values(self, qs, prefix) -> List[str]:
         search = qs.extra(size=0).query('query_string', **{"fields": self.sources, "query": f'*{prefix}*'})
         for source in self.sources:

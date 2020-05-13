@@ -2,10 +2,11 @@ from typing import Dict, List
 
 from lucyparser.tree import Operator
 
+from lucyfer.searchset.fields.mapping.base import MappingMixin
 from lucyfer.settings import lucyfer_settings
 
 
-class BaseSearchField:
+class BaseSearchField(MappingMixin):
     """
     Base Field class for including in SearchSet classes
     """

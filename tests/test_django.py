@@ -12,7 +12,7 @@ class Meta:
     fields = []
 
 
-class Model:
+class EmptyModel:
     _meta = Meta()
 
     class objects:
@@ -26,7 +26,13 @@ class Model:
 
         @classmethod
         def distinct(cls):
-            return ["a", "b", "c"]
+            return []
+
+
+class Model(EmptyModel):
+    @classmethod
+    def distinct(cls):
+        return ["a", "b", "c"]
 
 
 class UnicornSearchSet(DjangoSearchSet):
@@ -166,7 +172,7 @@ class TestMapping(LucyferTestCase):
             class Meta:
                 model = None
 
-        mapping = list(NotExcludingFieldsSearchSet.get_full_mapping().keys())
+        mapping = list(NotExcludingFieldsSearchSet.storage.mapping.keys())
         self.assertSequenceEqual(list(mapping), ["a", "b", "c"])
 
     def test_exclude_fields_in_searchset_class(self):
@@ -183,7 +189,7 @@ class TestMapping(LucyferTestCase):
             class Meta:
                 model = None
 
-        mapping = list(ExcludeFieldsInClassSearchSet.get_full_mapping().keys())
+        mapping = list(ExcludeFieldsInClassSearchSet.storage.mapping.keys())
         self.assertSequenceEqual(list(mapping), ["a", "c"])
 
     def test_exclude_sources_in_field(self):
@@ -198,12 +204,12 @@ class TestMapping(LucyferTestCase):
             class Meta:
                 model = None
 
-        mapping = list(ExcludeSourcesInFieldsSearchSet.get_full_mapping().keys())
+        mapping = list(ExcludeSourcesInFieldsSearchSet.storage.mapping.keys())
         self.assertSequenceEqual(list(mapping), ["a", "b"])
 
 
 class TestSearchHelpers(LucyferTestCase):
-    django_mapping_get_values = "lucyfer.searchset.mapping.values.DjangoMappingValue._get_values"
+    django_mapping_get_values = "lucyfer.searchset.fields.mapping.django.DjangoMappingMixin._get_values"
 
     def test_get_fields_values(self):
         class MySearchSet(DjangoSearchSet):
@@ -219,7 +225,8 @@ class TestSearchHelpers(LucyferTestCase):
         expected_values = sorted(["b", "c", "bb", "bba"])
 
         with mock.patch(self.django_mapping_get_values, return_value=expected_values):
-            self.assertEqual(expected_values, sorted(MySearchSet.get_fields_values(qs=Model.objects, field_name="a",
+            self.assertEqual(expected_values, sorted(MySearchSet.get_fields_values(qs=Model.objects,
+                                                                                   field_name="a",
                                                                                    prefix="")))
 
             self.assertEqual(expected_values, sorted(MySearchSet.get_fields_values(qs=Model.objects, field_name="a",
@@ -242,6 +249,9 @@ class TestSearchHelpers(LucyferTestCase):
 
         class MyNewSearchSet(MySearchSet):
             a = DjangoCharField(show_suggestions=False)
+
+            class Meta:
+                model = EmptyModel
 
         self.assertEqual(list(), MyNewSearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
 

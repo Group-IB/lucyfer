@@ -2,11 +2,12 @@ from django.db.models import Q
 from lucyparser.tree import Operator
 
 from lucyfer.searchset.fields.base import BaseSearchField, negate_query_if_necessary
+from lucyfer.searchset.fields.mapping import DjangoMappingMixin
 from lucyfer.searchset.utils import FieldType
 from lucyfer.utils import LuceneSearchCastValueException
 
 
-class DjangoSearchFieldWithoutWildcard(BaseSearchField):
+class DjangoSearchFieldWithoutWildcard(DjangoMappingMixin, BaseSearchField):
     DEFAULT_LOOKUP = "icontains"
 
     def create_query_for_sources(self, condition):
