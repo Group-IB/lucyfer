@@ -1,4 +1,5 @@
 import re
+from typing import List, Any
 
 from elasticsearch_dsl import Q
 from elasticsearch_dsl.query import Range
@@ -32,7 +33,7 @@ class ElasticSearchField(ElasticMappingMixin, BaseSearchField):
         else:
             return self._get_query_for_range(sources=sources, lookup=lookup, value=value)
 
-    def _get_query_for_term(self, sources, lookup, value):
+    def _get_query_for_term(self, sources: List[str], lookup: str, value: Any):
         query = None  # if set Q() as default it will be MatchAll() anytime
 
         value, lookup = self._get_wildcard_or_lookup(value=value, lookup=lookup)

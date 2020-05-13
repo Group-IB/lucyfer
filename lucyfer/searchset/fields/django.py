@@ -1,3 +1,5 @@
+from typing import Tuple, Optional
+
 from django.db.models import Q
 from lucyparser.tree import Operator
 
@@ -31,7 +33,7 @@ class DjangoSearchFieldWithoutWildcard(DjangoMappingMixin, BaseSearchField):
 class DjangoWildcardMixin:
     case_sensitive_wildcard = False
 
-    def process_wildcard(self, value):
+    def process_wildcard(self, value: str) -> Tuple[str, Optional[str]]:
         if value.startswith("*") and value.endswith("*"):
             return value[1:-1], "contains" if self.case_sensitive_wildcard else "icontains"
         elif value.startswith("*"):
@@ -85,7 +87,7 @@ class DjangoNumberField(DjangoSearchFieldWithoutWildcard):
 
 
 class DjangoIntegerField(DjangoNumberField):
-    def cast_value(self, value):
+    def cast_value(self, value: str) -> int:
         try:
             return int(value)
         except (ValueError, TypeError):
@@ -93,7 +95,7 @@ class DjangoIntegerField(DjangoNumberField):
 
 
 class DjangoFloatField(DjangoNumberField):
-    def cast_value(self, value):
+    def cast_value(self, value: str) -> float:
         try:
             return float(value)
         except (ValueError, TypeError):
@@ -109,7 +111,7 @@ class DjangoBooleanField(DjangoSearchFieldWithoutWildcard):
     _values = {"true": True, "false": False}
     _default_get_available_values_method = _values.keys
 
-    def cast_value(self, value):
+    def cast_value(self, value: str) -> bool:
         value = value.lower()
         if value in self._values:
             return self._values[value]

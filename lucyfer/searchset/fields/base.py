@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Optional, Callable, Any
 
 from lucyparser.tree import Operator
 
@@ -15,12 +15,14 @@ class BaseSearchField(MappingMixin):
     OPERATOR_TO_LOOKUP: Dict[Operator, str] = dict()
     _default_get_available_values_method = None
 
-    def __init__(self, sources=None,
-                 exclude_sources_from_mapping=False,
-                 show_suggestions=True,
-                 get_available_values_method=None,
-                 use_field_class_for_sources=True,
-                 use_cache_for_suggestions=None,
+    def __init__(self,
+                 sources: Optional[List[str]] = None,
+                 exclude_sources_from_mapping: bool = False,
+                 show_suggestions: bool = True,
+                 get_available_values_method: Optional[Callable[..., List[Any]]] = None,
+                 available_values_method_kwargs: Optional[Dict[str, Any]] = None,
+                 use_field_class_for_sources: bool = True,
+                 use_cache_for_suggestions: bool = None,
                  *args, **kwargs):
 
         sources = list() if sources is None else sources
@@ -30,6 +32,7 @@ class BaseSearchField(MappingMixin):
         self.show_suggestions = show_suggestions
         self.use_field_class_for_sources = use_field_class_for_sources
         self._get_available_values_method = get_available_values_method
+        self._available_values_method_kwargs = available_values_method_kwargs or {}
 
         if use_cache_for_suggestions is None:
             self.use_cache_for_suggestions = lucyfer_settings.CACHE_SEARCH_VALUES
@@ -42,13 +45,13 @@ class BaseSearchField(MappingMixin):
         """
         return value
 
-    def get_lookup(self, operator) -> str:
+    def get_lookup(self, operator: Operator) -> str:
         """
         Returns lookup for searching
         """
         return self.OPERATOR_TO_LOOKUP.get(operator, self.DEFAULT_LOOKUP)
 
-    def get_sources(self, field_name) -> List[str]:
+    def get_sources(self, field_name: str) -> List[str]:
         """
         Returns sources list
         """
@@ -66,7 +69,7 @@ class BaseSearchField(MappingMixin):
         """
         return value == "*"
 
-    def get_available_values_method(self):
+    def get_available_values_method(self) -> Optional[Callable[..., List[Any]]]:
         return self._get_available_values_method or self._default_get_available_values_method
 
 

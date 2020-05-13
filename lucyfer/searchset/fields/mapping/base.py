@@ -11,7 +11,12 @@ class MappingMixin:
     Class provides interface to get search helpers for field by some prefix with cache
     """
 
-    def get_values(self, qs, model_name, escape_quotes_in_suggestions: bool, prefix='', cache_key="DEFAULT_KEY") -> List[str]:
+    def get_values(self,
+                   qs,
+                   model_name: str,
+                   escape_quotes_in_suggestions: bool,
+                   prefix: str = '',
+                   cache_key: str = "DEFAULT_KEY") -> List[str]:
         if not self.show_suggestions:
             return list()
 
@@ -30,7 +35,7 @@ class MappingMixin:
 
         return cache.get(key)
 
-    def _get_parsed_values(self, qs, prefix, escape_quotes_in_suggestions):
+    def _get_parsed_values(self, qs, prefix: str, escape_quotes_in_suggestions: bool) -> List[str]:
         values = self._get_available_values(qs=qs, prefix=prefix)
 
         if escape_quotes_in_suggestions:
@@ -41,12 +46,11 @@ class MappingMixin:
 
         return values
 
-    def _get_available_values(self, qs, prefix):
-        # todo args kwargs
+    def _get_available_values(self, qs, prefix: str) -> List[str]:
         method = self.get_available_values_method()
 
         if callable(method):
-            available_values = method()
+            available_values = method(**self._available_values_method_kwargs)
             values = (v for v in available_values if prefix in v)
         else:
             values = self._get_values(qs, prefix)
