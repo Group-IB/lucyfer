@@ -16,6 +16,15 @@ class BaseSearchSetMetaClass(type):
         if not bases:
             return super().__new__(mcs, name, bases, attrs)
 
+        meta = attrs.pop("Meta", None)
+        if meta is None:
+            warnings.warn("Not defining Meta class will be deprecated soon.")
+
+        searchset = super().__new__(mcs, name, bases, attrs)
+
+        if meta:
+            setattr(searchset, "_meta", meta)
+
         searchset = super().__new__(mcs, name, bases, attrs)
 
         field_name_to_field = mcs.get_field_name_to_field(base_field_class=searchset._field_base_class, attrs=attrs)
