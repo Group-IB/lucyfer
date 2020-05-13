@@ -155,3 +155,21 @@ class TestLuceneToDjangoParsing(TestCase):
 
         for name, field in SearchSet.storage.field_source_to_field.items():
             self.assertEqual(expected_result[name], field.__class__)
+
+    def test_get_fields_sources(self):
+        class SearchSet(DjangoSearchSet):
+            char_field = DjangoCharField()
+            integer_field = DjangoIntegerField(sources=["d", "tralala"])
+
+            @classmethod
+            def _get_raw_mapping(cls):
+                return {"x": None, "y": FieldType.BOOLEAN}
+
+            class Meta:
+                model = Model
+
+        expected_result = ["char_field", "d", "tralala"]
+        self.assertEqual(len(expected_result), len(SearchSet.get_fields_sources()))
+
+        for source in SearchSet.get_fields_sources():
+            self.assertTrue(source in expected_result)

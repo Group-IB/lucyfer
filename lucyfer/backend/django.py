@@ -39,7 +39,7 @@ class DjangoLuceneSearchFilterMixin(SearchFilter):
         return super().filter_queryset(request=request, queryset=queryset, view=view)
 
     def _use_distinct(self, searchset_class, queryset, filtered_queryset):
-        if self.must_call_distinct(queryset, searchset_class.storage.field_name_to_field.keys()):
+        if self.must_call_distinct(queryset, searchset_class.get_fields_sources()):
             return distinct(filtered_queryset, queryset)
         else:
             return filtered_queryset

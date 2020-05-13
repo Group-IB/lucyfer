@@ -58,5 +58,7 @@ class DjangoSearchSet(LuceneToDjangoParserMixin, BaseSearchSet):
         """
         Returns sources for field defined in searchset class
         """
-        warnings.warn("It will bee deprecated soon. Use cls.storage.field_name_to_field.keys() instead")
-        return cls.storage.field_name_to_field.keys()
+        sources = []
+        for name, field in cls.storage.field_name_to_field.items():
+            sources.extend(field.get_sources(field_name=name))
+        return sources
