@@ -147,7 +147,7 @@ class TestMapping(TestCase):
                 model = None
 
         mapping = list(NotExcludingFieldsSearchSet.storage.mapping.keys())
-        self.assertSequenceEqual(mapping, ["a", "b", "c"], NotExcludingFieldsSearchSet.storage.fields_to_exclude_from_mapping)
+        self.assertSequenceEqual(mapping, ["a", "b", "c"])
 
     def test_exclude_fields_in_searchset_class(self):
         class ExcludeFieldsInClassSearchSet(DjangoSearchSet):
