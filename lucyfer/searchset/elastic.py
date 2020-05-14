@@ -25,6 +25,10 @@ class ElasticSearchSet(LuceneToElasticParserMixin, BaseSearchSet):
     _raw_type_to_field_type = elastic_data_type_to_field_type
 
     @classmethod
+    def get_es_client(cls, **kwargs):
+        raise NotImplementedError()
+
+    @classmethod
     def filter(cls, search, search_terms, raise_exception=False):
         query = cls.parse(raw_expression=search_terms)
         if query is None:
@@ -53,7 +57,7 @@ class ElasticSearchSet(LuceneToElasticParserMixin, BaseSearchSet):
     @classmethod
     def _get_raw_mapping(cls) -> Dict[str, FieldType]:
         model_instance = cls._meta.model()
-        index_to_mapping = cls._meta.model._get_es_client().indices.get_mapping(index=model_instance._get_index())
+        index_to_mapping = cls.get_es_client().indices.get_mapping(index=model_instance._get_index())
         if not index_to_mapping:
             return dict()
 

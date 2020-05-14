@@ -21,10 +21,6 @@ class EsClient:
 
 class Model:
     @staticmethod
-    def _get_es_client(*args, **kwargs):
-        return EsClient
-
-    @staticmethod
     def _get_index(*args, **kwargs):
         return "ululu"
 
@@ -38,6 +34,10 @@ class MyElasticSearchSet(ElasticSearchSet):
     float_field = ElasticFloatField()
     boolean_field = ElasticBooleanField()
     null_boolean_field = ElasticNullBooleanField()
+
+    @staticmethod
+    def get_es_client(**kwargs):
+        return EsClient
 
     class Meta:
         model = Model
