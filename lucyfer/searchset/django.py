@@ -1,4 +1,3 @@
-import warnings
 from typing import List, Dict
 
 from django.core.exceptions import FieldError

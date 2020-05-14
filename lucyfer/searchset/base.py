@@ -8,28 +8,69 @@ from lucyfer.searchset.storage import SearchSetStorage
 from lucyfer.searchset.utils import FieldType
 
 
+class BaseMetaClass:
+    model = None
+
+    show_suggestions = True
+    escape_quotes_in_suggestions = True
+
+    fields_to_exclude_from_mapping: List[str] = None
+    fields_to_exclude_from_suggestions: List[str] = None
+
+
 class BaseSearchSetMetaClass(type):
     def __new__(mcs, name, bases, attrs):
-        # if we got an base searchset class
-        if not bases:
-            return super().__new__(mcs, name, bases, attrs)
 
-        meta = attrs.pop("Meta", None)
-        assert meta, "Not defining Meta class is deprecated."
+        meta = mcs.get_meta(meta=attrs.pop("Meta", None))
 
         searchset = super().__new__(mcs, name, bases, attrs)
+        mcs.fill_missed_fields_for_mixins(searchset=searchset)
+
+        storage = mcs.get_storage(searchset=searchset, meta=meta, name=name, attrs=attrs, bases=bases)
+
+        setattr(meta, "_storage", storage)
         setattr(searchset, "_meta", meta)
 
+        return searchset
+
+    @classmethod
+    def fill_missed_fields_for_mixins(mcs, searchset):
+        for name in ["_field_base_class", "_default_field"]:
+            if not hasattr(searchset, name):
+                setattr(searchset, name, BaseSearchField)
+
+    @classmethod
+    def get_meta(mcs, meta) -> Type[BaseMetaClass]:
+        if meta:
+            class CurrentMeta(meta, BaseMetaClass):
+                pass
+        else:
+            class CurrentMeta(BaseMetaClass):
+                pass
+
+        return CurrentMeta
+
+    @classmethod
+    def get_storage(mcs, searchset, meta, name, attrs, bases):
         field_name_to_field = mcs.get_field_name_to_field(base_field_class=searchset._field_base_class, attrs=attrs)
         mcs.validate_field_name_to_field(field_name_to_field=field_name_to_field, searchset_name=name)
 
+        # todo remove in 0.4.0
+        original_fields_to_exclude_from_mapping = \
+            getattr(searchset, "fields_to_exclude_from_mapping", None) or meta.fields_to_exclude_from_mapping or []
+
         fields_to_exclude_from_mapping = mcs.get_fields_to_exclude_from_mapping(
-            searchset_fields_to_exclude_from_mapping=searchset.fields_to_exclude_from_mapping or [],
+            searchset_fields_to_exclude_from_mapping=original_fields_to_exclude_from_mapping,
             field_name_to_field=field_name_to_field,
         )
 
+        # todo remove in 0.4.0
+        original_fields_to_exclude_from_suggestions = \
+            getattr(searchset, "fields_to_exclude_from_suggestions",
+                    None) or meta.fields_to_exclude_from_suggestions or []
+
         fields_to_exclude_from_suggestions = mcs.get_fields_to_exclude_from_suggestions(
-            searchset_fields_to_exclude_from_suggestions=searchset.fields_to_exclude_from_suggestions or [],
+            searchset_fields_to_exclude_from_suggestions=original_fields_to_exclude_from_suggestions,
             field_name_to_field=field_name_to_field,
         )
 
@@ -39,9 +80,15 @@ class BaseSearchSetMetaClass(type):
             fields_to_exclude_from_mapping=fields_to_exclude_from_mapping,
             fields_to_exclude_from_suggestions=fields_to_exclude_from_suggestions,
         )
-        setattr(searchset, "storage", storage)
 
-        return searchset
+        bases_meta_classes = [base for base in bases
+                              if hasattr(base, "_meta") and issubclass(base._meta, BaseMetaClass)]
+
+        if bases_meta_classes:
+            for base in bases_meta_classes:
+                storage.field_name_to_field.update(base._meta._storage.field_name_to_field)
+
+        return storage
 
     @classmethod
     def get_field_name_to_field(mcs,
@@ -57,7 +104,7 @@ class BaseSearchSetMetaClass(type):
         return {name: instance for name, instance in attrs.items() if isinstance(instance, base_field_class)}
 
     @classmethod
-    def validate_field_name_to_field(cls,
+    def validate_field_name_to_field(mcs,
                                      field_name_to_field: Dict[str, BaseSearchField],
                                      searchset_name: str) -> None:
         for name, field in field_name_to_field.items():
@@ -86,22 +133,40 @@ class BaseSearchSetMetaClass(type):
 
 
 class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
-    _field_base_class = None
+    _field_base_class = BaseSearchField
 
     # default field uses for creating query for fields not defined in searchset class
-    _default_field = None
-
-    # TODO move it to Meta
-    fields_to_exclude_from_mapping: Optional[List[str]] = None
-    fields_to_exclude_from_suggestions: Optional[List[str]] = None
-    show_suggestions = True
-    escape_quotes_in_suggestions = True
+    _default_field = BaseSearchField
 
     # provides possibility to use auto cast for boolean/integer/etc fields by field classes usage
     # that means we analyze elastic mapping data types or django models to match it to field classes
     # TODO property
     _field_type_to_field_class: Optional[Dict[int, _field_base_class]] = None
     _raw_type_to_field_type: Optional[Dict[Any, int]] = None
+
+    @classproperty
+    def storage(cls):
+        return cls._meta._storage
+
+    @classproperty
+    def fields_to_exclude_from_mapping(cls) -> Optional[List[str]]:
+        warnings.warn("Deprected! Use cls._meta.fields_to_exclude_from_mapping instead")
+        return cls._meta.fields_to_exclude_from_mapping
+
+    @classproperty
+    def fields_to_exclude_from_suggestions(cls) -> Optional[List[str]]:
+        warnings.warn("Deprected! Use cls._meta.fields_to_exclude_from_suggestions instead")
+        return cls._meta.fields_to_exclude_from_suggestions
+
+    @classproperty
+    def show_suggestions(cls) -> bool:
+        warnings.warn("Deprected! Use cls._meta.show_suggestions instead")
+        return cls._meta.show_suggestions
+
+    @classproperty
+    def escape_quotes_in_suggestions(cls) -> bool:
+        warnings.warn("Deprected! Use cls._meta.escape_quotes_in_suggestions instead")
+        return cls._meta.escape_quotes_in_suggestions
 
     @classproperty
     def _field_source_to_search_field_instance(cls):
@@ -120,12 +185,12 @@ class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
 
         :return: list of values
         """
-        if not cls.show_suggestions:
+        if not cls._meta.show_suggestions:
             return list()
 
         return cls.storage.field_source_to_field.get(field_name, cls._default_field()).get_values(
             qs=qs, prefix=prefix, cache_key=cache_key, model_name=cls._meta.model.__name__,
-            escape_quotes_in_suggestions=cls.escape_quotes_in_suggestions
+            escape_quotes_in_suggestions=cls._meta.escape_quotes_in_suggestions
         )
 
     @classmethod

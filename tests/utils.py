@@ -54,3 +54,30 @@ def dict_merge(dct, merge_dct):
             dct[k] = v
 
     return dct
+
+
+class ModelMeta:
+    fields = []
+
+
+class EmptyModel:
+    _meta = ModelMeta()
+
+    class objects:
+        @classmethod
+        def filter(cls, *args, **kwargs):
+            return cls
+
+        @classmethod
+        def values_list(cls, *args, **kwargs):
+            return cls
+
+        @classmethod
+        def distinct(cls):
+            return []
+
+
+class Model(EmptyModel):
+    @classmethod
+    def distinct(cls):
+        return ["a", "b", "c"]

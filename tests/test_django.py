@@ -1,38 +1,12 @@
-from unittest import mock
+from unittest import mock, TestCase
 
 from django.db.models import Q
 from parameterized import parameterized
 
 from lucyfer.searchset import DjangoSearchSet
 from lucyfer.searchset.fields import DjangoCharField, DjangoIntegerField, DjangoFloatField, DjangoBooleanField
-from tests.base import TestParsing, LucyferTestCase
-
-
-class Meta:
-    fields = []
-
-
-class EmptyModel:
-    _meta = Meta()
-
-    class objects:
-        @classmethod
-        def filter(cls, *args, **kwargs):
-            return cls
-
-        @classmethod
-        def values_list(cls, *args, **kwargs):
-            return cls
-
-        @classmethod
-        def distinct(cls):
-            return []
-
-
-class Model(EmptyModel):
-    @classmethod
-    def distinct(cls):
-        return ["a", "b", "c"]
+from tests.base import TestParsing
+from tests.utils import EmptyModel, Model
 
 
 class UnicornSearchSet(DjangoSearchSet):
@@ -159,7 +133,7 @@ class TestLuceneToDjangoParsing(TestParsing):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
 
 
-class TestMapping(LucyferTestCase):
+class TestMapping(TestCase):
     def test_not_excluding_any_fields(self):
         class NotExcludingFieldsSearchSet(DjangoSearchSet):
             a = DjangoCharField()
@@ -173,14 +147,12 @@ class TestMapping(LucyferTestCase):
                 model = None
 
         mapping = list(NotExcludingFieldsSearchSet.storage.mapping.keys())
-        self.assertSequenceEqual(list(mapping), ["a", "b", "c"])
+        self.assertSequenceEqual(mapping, ["a", "b", "c"], NotExcludingFieldsSearchSet.storage.fields_to_exclude_from_mapping)
 
     def test_exclude_fields_in_searchset_class(self):
         class ExcludeFieldsInClassSearchSet(DjangoSearchSet):
             a = DjangoCharField()
             b = DjangoFloatField(sources=["c"])
-
-            fields_to_exclude_from_mapping = ["b"]
 
             @classmethod
             def _get_raw_mapping(cls):
@@ -188,6 +160,7 @@ class TestMapping(LucyferTestCase):
 
             class Meta:
                 model = None
+                fields_to_exclude_from_mapping = ["b"]
 
         mapping = list(ExcludeFieldsInClassSearchSet.storage.mapping.keys())
         self.assertSequenceEqual(list(mapping), ["a", "c"])
@@ -208,7 +181,7 @@ class TestMapping(LucyferTestCase):
         self.assertSequenceEqual(list(mapping), ["a", "b"])
 
 
-class TestSearchHelpers(LucyferTestCase):
+class TestSearchHelpers(TestCase):
     django_mapping_get_values = "lucyfer.searchset.fields.mapping.django.DjangoMappingMixin._get_values"
 
     def test_get_fields_values(self):
@@ -242,8 +215,7 @@ class TestSearchHelpers(LucyferTestCase):
 
             class Meta:
                 model = Model
-
-            fields_to_exclude_from_suggestions = ["a"]
+                fields_to_exclude_from_suggestions = ["a"]
 
         self.assertEqual(list(), MySearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
 
@@ -286,8 +258,7 @@ class TestSearchHelpers(LucyferTestCase):
 
             class Meta:
                 model = Model
-
-            escape_quotes_in_suggestions = True
+                escape_quotes_in_suggestions = True
 
         self.assertEqual(escaped_available_a_values,
                          MySearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
@@ -301,8 +272,7 @@ class TestSearchHelpers(LucyferTestCase):
 
             class Meta:
                 model = Model
-
-            escape_quotes_in_suggestions = False
+                escape_quotes_in_suggestions = False
 
         self.assertEqual(not_escaped_available_a_values,
                          MySearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
