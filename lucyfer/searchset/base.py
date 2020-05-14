@@ -22,9 +22,9 @@ class BaseSearchSetMetaClass(type):
     def __new__(mcs, name, bases, attrs):
 
         meta = mcs.get_meta(meta=attrs.pop("Meta", None))
-
         searchset = super().__new__(mcs, name, bases, attrs)
-        mcs.fill_missed_fields_for_mixins(searchset=searchset)
+
+        mcs.process_required_field(searchset=searchset, bases=bases)
 
         storage = mcs.get_storage(searchset=searchset, meta=meta, name=name, attrs=attrs, bases=bases)
 
@@ -33,11 +33,15 @@ class BaseSearchSetMetaClass(type):
 
         return searchset
 
+    _required_field = ["_field_base_class", "_default_field"]
+    _default_reqiured_value = BaseSearchField
+
     @classmethod
-    def fill_missed_fields_for_mixins(mcs, searchset):
-        for name in ["_field_base_class", "_default_field"]:
-            if not hasattr(searchset, name):
-                setattr(searchset, name, BaseSearchField)
+    def process_required_field(mcs, searchset, bases):
+        for name in mcs._required_field:
+            if not hasattr(searchset, name) or getattr(searchset, name) == mcs._default_reqiured_value:
+                value = getattr(bases[-1], name, mcs._default_reqiured_value) if bases else mcs._default_reqiured_value
+                setattr(searchset, name, value)
 
     @classmethod
     def get_meta(mcs, meta) -> Type[BaseMetaClass]:
@@ -86,7 +90,12 @@ class BaseSearchSetMetaClass(type):
 
         if bases_meta_classes:
             for base in bases_meta_classes:
-                storage.field_name_to_field.update(base._meta._storage.field_name_to_field)
+                storage.field_name_to_field.update(
+                    {
+                        name: field if field.__class__ != base._default_field else searchset._default_field()
+                        for name, field in base._meta._storage.field_name_to_field.items()
+                    }
+                )
 
         return storage
 
