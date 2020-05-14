@@ -1,4 +1,3 @@
-import warnings
 from typing import List, Dict
 
 from django.core.exceptions import FieldError
@@ -32,9 +31,6 @@ class DjangoSearchSet(LuceneToDjangoParserMixin, BaseSearchSet):
 
     _field_type_to_field_class = default_django_field_types_to_fields
     _raw_type_to_field_type = django_model_field_to_field_type
-
-    class Meta:
-        pass
 
     @classmethod
     def filter(cls, queryset, search_terms, raise_exception=False):

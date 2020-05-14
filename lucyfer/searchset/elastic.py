@@ -24,9 +24,6 @@ class ElasticSearchSet(LuceneToElasticParserMixin, BaseSearchSet):
     _field_type_to_field_class = default_elastic_field_types_to_fields
     _raw_type_to_field_type = elastic_data_type_to_field_type
 
-    class Meta:
-        pass
-
     @classmethod
     def filter(cls, search, search_terms, raise_exception=False):
         query = cls.parse(raw_expression=search_terms)
