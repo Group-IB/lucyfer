@@ -49,7 +49,7 @@ class TestStorage(TestCase):
             class Meta:
                 model = ElasticModel
 
-            fields_to_exclude_from_mapping = ["a", "b"]
+                fields_to_exclude_from_mapping = ["a", "b"]
 
         expected_fields = {"a", "b", "c", "ululu"}
         self.assertEqual(len(expected_fields), len(SearchSet.storage.fields_to_exclude_from_mapping))
@@ -71,7 +71,7 @@ class TestStorage(TestCase):
             class Meta:
                 model = ElasticModel
 
-            fields_to_exclude_from_suggestions = ["a", "b"]
+                fields_to_exclude_from_suggestions = ["a", "b"]
 
         expected_fields = {"a", "b", "float_field"}
         self.assertEqual(len(expected_fields), len(SearchSet.storage.fields_to_exclude_from_suggestions))
@@ -109,8 +109,8 @@ class TestStorage(TestCase):
             class Meta:
                 model = ElasticModel
 
-            fields_to_exclude_from_mapping = ["x"]
-            fields_to_exclude_from_suggestions = ["a", "b"]
+                fields_to_exclude_from_mapping = ["x"]
+                fields_to_exclude_from_suggestions = ["a", "b"]
 
         expected_result = {
             "char_field": DjangoCharField,
