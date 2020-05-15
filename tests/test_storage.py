@@ -173,3 +173,16 @@ class TestLuceneToDjangoParsing(TestCase):
 
         for source in SearchSet.get_fields_sources():
             self.assertTrue(source in expected_result)
+
+    def test_show_suggestion_for_raw_mapping_field(self):
+        class SearchSet(DjangoSearchSet):
+            @classmethod
+            def _get_raw_mapping(cls):
+                return {"x": None, "y": None}
+
+            class Meta:
+                model = EmptyModel
+                fields_to_exclude_from_suggestions = ["x"]
+
+        self.assertTrue(SearchSet.storage.field_source_to_field["y"].show_suggestions)
+        self.assertFalse(SearchSet.storage.field_source_to_field["x"].show_suggestions)

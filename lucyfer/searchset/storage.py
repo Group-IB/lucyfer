@@ -53,7 +53,8 @@ class SearchSetStorage:
             result = {
                 name: self.searchset_class._field_type_to_field_class.get(
                     field_type, self.searchset_class._default_field
-                )()
+                )(show_suggestions=name not in self.fields_to_exclude_from_suggestions)
+
                 for name, field_type in self.raw_mapping.items()
             }
 
@@ -75,15 +76,10 @@ class SearchSetStorage:
                             }
                         )
                     else:
+                        # we extend missed fields only if current source not in result
+                        # but it will be append in result later in cycle so after cycle we have to filter it again
                         missed_fields.extend([source for source in field.sources if source not in result])
 
-                if field.use_field_class_for_sources and field.sources:
-                    result.update(
-                        {
-                            field_source: field
-                            for field_source in field.sources
-                        }
-                    )
             # now process the sources
             missed_fields = [field for field in missed_fields if field not in result]
             if missed_fields:
