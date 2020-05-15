@@ -1,12 +1,10 @@
-from unittest import mock, TestCase
-
 from django.db.models import Q
 from parameterized import parameterized
 
 from lucyfer.searchset import DjangoSearchSet
 from lucyfer.searchset.fields import DjangoCharField, DjangoIntegerField, DjangoFloatField, DjangoBooleanField
 from tests.base import TestParsing
-from tests.utils import EmptyModel, Model
+from tests.utils import DjangoModel
 
 
 class UnicornSearchSet(DjangoSearchSet):
@@ -22,7 +20,7 @@ class UnicornSearchSet(DjangoSearchSet):
         return dict()
 
     class Meta:
-        model = Model
+        model = DjangoModel
 
 
 class TestLuceneToDjangoParsing(TestParsing):
@@ -131,148 +129,3 @@ class TestLuceneToDjangoParsing(TestParsing):
     ))
     def test_undefined_values(self, expected_query, raw_expressions):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
-
-
-class TestMapping(TestCase):
-    def test_not_excluding_any_fields(self):
-        class NotExcludingFieldsSearchSet(DjangoSearchSet):
-            a = DjangoCharField()
-            b = DjangoFloatField(sources=["c"])
-
-            @classmethod
-            def _get_raw_mapping(cls):
-                return dict()
-
-            class Meta:
-                model = None
-
-        mapping = list(NotExcludingFieldsSearchSet.storage.mapping.keys())
-        self.assertSequenceEqual(mapping, ["a", "b", "c"])
-
-    def test_exclude_fields_in_searchset_class(self):
-        class ExcludeFieldsInClassSearchSet(DjangoSearchSet):
-            a = DjangoCharField()
-            b = DjangoFloatField(sources=["c"])
-
-            @classmethod
-            def _get_raw_mapping(cls):
-                return dict()
-
-            class Meta:
-                model = None
-                fields_to_exclude_from_mapping = ["b"]
-
-        mapping = list(ExcludeFieldsInClassSearchSet.storage.mapping.keys())
-        self.assertSequenceEqual(list(mapping), ["a", "c"])
-
-    def test_exclude_sources_in_field(self):
-        class ExcludeSourcesInFieldsSearchSet(DjangoSearchSet):
-            a = DjangoCharField()
-            b = DjangoFloatField(sources=["c"], exclude_sources_from_mapping=True)
-
-            @classmethod
-            def _get_raw_mapping(cls):
-                return dict()
-
-            class Meta:
-                model = None
-
-        mapping = list(ExcludeSourcesInFieldsSearchSet.storage.mapping.keys())
-        self.assertSequenceEqual(list(mapping), ["a", "b"])
-
-
-class TestSearchHelpers(TestCase):
-    django_mapping_get_values = "lucyfer.searchset.fields.mapping.django.DjangoMappingMixin._get_values"
-
-    def test_get_fields_values(self):
-        class MySearchSet(DjangoSearchSet):
-            a = DjangoCharField()
-
-            @classmethod
-            def get_raw_mapping(cls):
-                return dict()
-
-            class Meta:
-                model = Model
-
-        expected_values = sorted(["b", "c", "bb", "bba"])
-
-        with mock.patch(self.django_mapping_get_values, return_value=expected_values):
-            self.assertEqual(expected_values, sorted(MySearchSet.get_fields_values(qs=Model.objects,
-                                                                                   field_name="a",
-                                                                                   prefix="")))
-
-            self.assertEqual(expected_values, sorted(MySearchSet.get_fields_values(qs=Model.objects, field_name="a",
-                                                                                   prefix="", cache_key="x")))
-
-    def test_show_suggestions(self):
-        class MySearchSet(DjangoSearchSet):
-            a = DjangoCharField()
-
-            @classmethod
-            def get_raw_mapping(cls):
-                return dict()
-
-            class Meta:
-                model = Model
-                fields_to_exclude_from_suggestions = ["a"]
-
-        self.assertEqual(list(), MySearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
-
-        class MyNewSearchSet(MySearchSet):
-            a = DjangoCharField(show_suggestions=False)
-
-            class Meta:
-                model = EmptyModel
-
-        self.assertEqual(list(), MyNewSearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
-
-    def test_get_available_values(self):
-        def expected_available_values():
-            return ['ululu', "xxxx"]
-
-        class MySearchSet(DjangoSearchSet):
-            a = DjangoCharField(get_available_values_method=expected_available_values)
-            b = DjangoBooleanField()
-
-            @classmethod
-            def get_raw_mapping(cls):
-                return {k: None for k in ["c", "d"]}
-
-            class Meta:
-                model = Model
-
-        self.assertEqual(['ululu', "xxxx"], MySearchSet.get_fields_values(qs=Model.objects, field_name="a"))
-        self.assertEqual(['true', 'false'], list(MySearchSet.get_fields_values(qs=Model.objects, field_name="b")))
-
-    def test_escape_quotes(self):
-        not_escaped_available_a_values = ["xxx ' xxx", 'xxx " xxx']
-        escaped_available_a_values = ["xxx \\' xxx", 'xxx \\" xxx']
-
-        class MySearchSet(DjangoSearchSet):
-            a = DjangoCharField(get_available_values_method=lambda *args: not_escaped_available_a_values)
-
-            @classmethod
-            def get_raw_mapping(cls):
-                return dict()
-
-            class Meta:
-                model = Model
-                escape_quotes_in_suggestions = True
-
-        self.assertEqual(escaped_available_a_values,
-                         MySearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))
-
-        class MySearchSet(DjangoSearchSet):
-            a = DjangoCharField(get_available_values_method=lambda *args: not_escaped_available_a_values)
-
-            @classmethod
-            def get_raw_mapping(cls):
-                return dict()
-
-            class Meta:
-                model = Model
-                escape_quotes_in_suggestions = False
-
-        self.assertEqual(not_escaped_available_a_values,
-                         MySearchSet.get_fields_values(qs=Model.objects, field_name="a", prefix=""))

@@ -1,35 +1,9 @@
-from unittest import TestCase
+from unittest import TestCase, mock
 
 from lucyfer.searchset import DjangoSearchSet
 from lucyfer.searchset.fields import DjangoCharField, DjangoIntegerField, DjangoFloatField, DjangoBooleanField, \
     FieldType
-
-
-class Meta:
-    fields = []
-
-
-class EmptyModel:
-    _meta = Meta()
-
-    class objects:
-        @classmethod
-        def filter(cls, *args, **kwargs):
-            return cls
-
-        @classmethod
-        def values_list(cls, *args, **kwargs):
-            return cls
-
-        @classmethod
-        def distinct(cls):
-            return []
-
-
-class Model(EmptyModel):
-    @classmethod
-    def distinct(cls):
-        return ["a", "b", "c"]
+from tests.utils import EmptyDjangoModel, ElasticModel, DjangoModel
 
 
 class UnicornSearchSet(DjangoSearchSet):
@@ -45,10 +19,10 @@ class UnicornSearchSet(DjangoSearchSet):
         return dict()
 
     class Meta:
-        model = Model
+        model = ElasticModel
 
 
-class TestLuceneToDjangoParsing(TestCase):
+class TestStorage(TestCase):
     searchset_class = UnicornSearchSet
 
     def test_field_name_to_field(self):
@@ -73,7 +47,7 @@ class TestLuceneToDjangoParsing(TestCase):
                 return dict()
 
             class Meta:
-                model = Model
+                model = ElasticModel
 
             fields_to_exclude_from_mapping = ["a", "b"]
 
@@ -95,7 +69,7 @@ class TestLuceneToDjangoParsing(TestCase):
                 return dict()
 
             class Meta:
-                model = Model
+                model = ElasticModel
 
             fields_to_exclude_from_suggestions = ["a", "b"]
 
@@ -117,7 +91,7 @@ class TestLuceneToDjangoParsing(TestCase):
                 return expected_mapping
 
             class Meta:
-                model = Model
+                model = ElasticModel
 
         self.assertEqual(SearchSet.storage.raw_mapping, expected_mapping)
 
@@ -133,7 +107,7 @@ class TestLuceneToDjangoParsing(TestCase):
                 return {"x": None, "y": FieldType.BOOLEAN}
 
             class Meta:
-                model = Model
+                model = ElasticModel
 
             fields_to_exclude_from_mapping = ["x"]
             fields_to_exclude_from_suggestions = ["a", "b"]
@@ -166,7 +140,7 @@ class TestLuceneToDjangoParsing(TestCase):
                 return {"x": None, "y": FieldType.BOOLEAN}
 
             class Meta:
-                model = Model
+                model = ElasticModel
 
         expected_result = ["char_field", "d", "tralala"]
         self.assertEqual(len(expected_result), len(SearchSet.get_fields_sources()))
@@ -181,8 +155,151 @@ class TestLuceneToDjangoParsing(TestCase):
                 return {"x": None, "y": None}
 
             class Meta:
-                model = EmptyModel
+                model = EmptyDjangoModel
                 fields_to_exclude_from_suggestions = ["x"]
 
         self.assertTrue(SearchSet.storage.field_source_to_field["y"].show_suggestions)
         self.assertFalse(SearchSet.storage.field_source_to_field["x"].show_suggestions)
+
+    def test_not_excluding_any_fields(self):
+        class NotExcludingFieldsSearchSet(DjangoSearchSet):
+            a = DjangoCharField()
+            b = DjangoFloatField(sources=["c"])
+
+            @classmethod
+            def _get_raw_mapping(cls):
+                return dict()
+
+            class Meta:
+                model = None
+
+        mapping = list(NotExcludingFieldsSearchSet.storage.mapping.keys())
+        self.assertSequenceEqual(mapping, ["a", "b", "c"])
+
+    def test_exclude_fields_in_searchset_class(self):
+        class ExcludeFieldsInClassSearchSet(DjangoSearchSet):
+            a = DjangoCharField()
+            b = DjangoFloatField(sources=["c"])
+
+            @classmethod
+            def _get_raw_mapping(cls):
+                return dict()
+
+            class Meta:
+                model = None
+                fields_to_exclude_from_mapping = ["b"]
+
+        mapping = list(ExcludeFieldsInClassSearchSet.storage.mapping.keys())
+        self.assertSequenceEqual(list(mapping), ["a", "c"])
+
+    def test_exclude_sources_in_field(self):
+        class ExcludeSourcesInFieldsSearchSet(DjangoSearchSet):
+            a = DjangoCharField()
+            b = DjangoFloatField(sources=["c"], exclude_sources_from_mapping=True)
+
+            @classmethod
+            def _get_raw_mapping(cls):
+                return dict()
+
+            class Meta:
+                model = None
+
+        mapping = list(ExcludeSourcesInFieldsSearchSet.storage.mapping.keys())
+        self.assertSequenceEqual(list(mapping), ["a", "b"])
+
+
+class TestSearchHelpers(TestCase):
+    django_mapping_get_values = "lucyfer.searchset.fields.mapping.django.DjangoMappingMixin._get_values"
+
+    def test_get_fields_values(self):
+        class MySearchSet(DjangoSearchSet):
+            a = DjangoCharField()
+
+            @classmethod
+            def get_raw_mapping(cls):
+                return dict()
+
+            class Meta:
+                model = DjangoModel
+
+        expected_values = sorted(["b", "c", "bb", "bba"])
+
+        with mock.patch(self.django_mapping_get_values, return_value=expected_values):
+            self.assertEqual(expected_values, sorted(MySearchSet.get_fields_values(qs=DjangoModel.objects,
+                                                                                   field_name="a",
+                                                                                   prefix="")))
+
+            self.assertEqual(expected_values, sorted(MySearchSet.get_fields_values(qs=DjangoModel.objects, field_name="a",
+                                                                                   prefix="", cache_key="x")))
+
+    def test_show_suggestions(self):
+        class MySearchSet(DjangoSearchSet):
+            a = DjangoCharField()
+
+            @classmethod
+            def get_raw_mapping(cls):
+                return dict()
+
+            class Meta:
+                model = DjangoModel
+                fields_to_exclude_from_suggestions = ["a"]
+
+        self.assertEqual(list(), MySearchSet.get_fields_values(qs=DjangoModel.objects, field_name="a", prefix=""))
+
+        class MyNewSearchSet(MySearchSet):
+            a = DjangoCharField(show_suggestions=False)
+
+            class Meta:
+                model = EmptyDjangoModel
+
+        self.assertEqual(list(), MyNewSearchSet.get_fields_values(qs=DjangoModel.objects, field_name="a", prefix=""))
+
+    def test_get_available_values(self):
+        def expected_available_values():
+            return ['ululu', "xxxx"]
+
+        class MySearchSet(DjangoSearchSet):
+            a = DjangoCharField(get_available_values_method=expected_available_values)
+            b = DjangoBooleanField()
+
+            @classmethod
+            def get_raw_mapping(cls):
+                return {k: None for k in ["c", "d"]}
+
+            class Meta:
+                model = DjangoModel
+
+        self.assertEqual(['ululu', "xxxx"], MySearchSet.get_fields_values(qs=DjangoModel.objects, field_name="a"))
+        self.assertEqual(['true', 'false'], list(MySearchSet.get_fields_values(qs=DjangoModel.objects, field_name="b")))
+
+    def test_escape_quotes(self):
+        not_escaped_available_a_values = ["xxx ' xxx", 'xxx " xxx']
+        escaped_available_a_values = ["xxx \\' xxx", 'xxx \\" xxx']
+
+        class MySearchSet(DjangoSearchSet):
+            a = DjangoCharField(get_available_values_method=lambda *args: not_escaped_available_a_values)
+
+            @classmethod
+            def get_raw_mapping(cls):
+                return dict()
+
+            class Meta:
+                model = DjangoModel
+                escape_quotes_in_suggestions = True
+
+        self.assertEqual(escaped_available_a_values,
+                         MySearchSet.get_fields_values(qs=DjangoModel.objects, field_name="a", prefix=""))
+
+        class MySearchSet(DjangoSearchSet):
+            a = DjangoCharField(get_available_values_method=lambda *args: not_escaped_available_a_values)
+
+            @classmethod
+            def get_raw_mapping(cls):
+                return dict()
+
+            class Meta:
+                model = DjangoModel
+                escape_quotes_in_suggestions = False
+
+        self.assertEqual(not_escaped_available_a_values,
+                         MySearchSet.get_fields_values(qs=DjangoModel.objects, field_name="a", prefix=""))

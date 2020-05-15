@@ -3,7 +3,7 @@ from unittest import TestCase
 from lucyfer.searchset import DjangoSearchSet
 from lucyfer.searchset.base import BaseMetaClass, BaseSearchSetMetaClass
 from lucyfer.searchset.fields import DjangoCharField
-from tests.utils import EmptyModel
+from tests.utils import EmptyDjangoModel
 
 
 class TestSearchSetMetaClass(TestCase):
@@ -58,7 +58,7 @@ class TestSearchSetMetaClass(TestCase):
             searchsetfield = DjangoCharField()
 
             class Meta:
-                model = EmptyModel
+                model = EmptyDjangoModel
 
         expected_declared_fields = ["mixinfield", "searchsetfield"]
         for field in expected_declared_fields:

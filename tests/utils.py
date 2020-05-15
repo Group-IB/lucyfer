@@ -60,7 +60,7 @@ class ModelMeta:
     fields = []
 
 
-class EmptyModel:
+class EmptyDjangoModel:
     _meta = ModelMeta()
 
     class objects:
@@ -77,7 +77,23 @@ class EmptyModel:
             return []
 
 
-class Model(EmptyModel):
+class DjangoModel(EmptyDjangoModel):
     @classmethod
     def distinct(cls):
         return ["a", "b", "c"]
+
+
+class Indicies:
+    @staticmethod
+    def get_mapping(*args, **kwargs):
+        return None
+
+
+class EsClient:
+    indices = Indicies
+
+
+class ElasticModel:
+    @staticmethod
+    def _get_index(*args, **kwargs):
+        return "ululu"

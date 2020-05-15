@@ -6,23 +6,7 @@ from lucyfer.searchset.fields import ElasticSearchField, ElasticIntegerField, El
     ElasticBooleanField, ElasticNullBooleanField
 
 from tests.base import TestParsing
-from tests.utils import compare_dicts, Panic
-
-
-class Indicies:
-    @staticmethod
-    def get_mapping(*args, **kwargs):
-        return None
-
-
-class EsClient:
-    indices = Indicies
-
-
-class Model:
-    @staticmethod
-    def _get_index(*args, **kwargs):
-        return "ululu"
+from tests.utils import compare_dicts, Panic, EsClient, ElasticModel
 
 
 class MyElasticSearchSet(ElasticSearchSet):
@@ -40,7 +24,7 @@ class MyElasticSearchSet(ElasticSearchSet):
         return EsClient
 
     class Meta:
-        model = Model
+        model = ElasticModel
 
 
 class TestLuceneToDjangoParsing(TestParsing):
