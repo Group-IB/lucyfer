@@ -1,5 +1,4 @@
 from typing import List, Optional, Dict, Any, Type, Set
-import warnings
 
 from django.utils.decorators import classproperty
 
@@ -59,22 +58,13 @@ class BaseSearchSetMetaClass(type):
         field_name_to_field = mcs.get_field_name_to_field(base_field_class=searchset._field_base_class, attrs=attrs)
         mcs.validate_field_name_to_field(field_name_to_field=field_name_to_field, searchset_name=name)
 
-        # todo remove in 0.4.0
-        original_fields_to_exclude_from_mapping = \
-            getattr(searchset, "fields_to_exclude_from_mapping", None) or meta.fields_to_exclude_from_mapping or []
-
         fields_to_exclude_from_mapping = mcs.get_fields_to_exclude_from_mapping(
-            searchset_fields_to_exclude_from_mapping=original_fields_to_exclude_from_mapping,
+            searchset_fields_to_exclude_from_mapping=meta.fields_to_exclude_from_mapping or [],
             field_name_to_field=field_name_to_field,
         )
 
-        # todo remove in 0.4.0
-        original_fields_to_exclude_from_suggestions = \
-            getattr(searchset, "fields_to_exclude_from_suggestions",
-                    None) or meta.fields_to_exclude_from_suggestions or []
-
         fields_to_exclude_from_suggestions = mcs.get_fields_to_exclude_from_suggestions(
-            searchset_fields_to_exclude_from_suggestions=original_fields_to_exclude_from_suggestions,
+            searchset_fields_to_exclude_from_suggestions=meta.fields_to_exclude_from_suggestions or [],
             field_name_to_field=field_name_to_field,
         )
 
@@ -157,31 +147,6 @@ class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
     def storage(cls):
         return cls._meta._storage
 
-    @classproperty
-    def fields_to_exclude_from_mapping(cls) -> Optional[List[str]]:
-        warnings.warn("Deprected! Use cls._meta.fields_to_exclude_from_mapping instead")
-        return cls._meta.fields_to_exclude_from_mapping
-
-    @classproperty
-    def fields_to_exclude_from_suggestions(cls) -> Optional[List[str]]:
-        warnings.warn("Deprected! Use cls._meta.fields_to_exclude_from_suggestions instead")
-        return cls._meta.fields_to_exclude_from_suggestions
-
-    @classproperty
-    def show_suggestions(cls) -> bool:
-        warnings.warn("Deprected! Use cls._meta.show_suggestions instead")
-        return cls._meta.show_suggestions
-
-    @classproperty
-    def escape_quotes_in_suggestions(cls) -> bool:
-        warnings.warn("Deprected! Use cls._meta.escape_quotes_in_suggestions instead")
-        return cls._meta.escape_quotes_in_suggestions
-
-    @classproperty
-    def _field_source_to_search_field_instance(cls):
-        warnings.warn("Field will be deprecated soon. Use cls.storage.field_source_to_field instead")
-        return cls.storage.field_source_to_field
-
     @classmethod
     def get_fields_values(cls, qs, field_name, prefix='', cache_key="DEFAULT_KEY") -> List[str]:
         """
@@ -203,39 +168,11 @@ class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
         )
 
     @classmethod
-    def get_fields_to_exclude_from_mapping(cls) -> Set[str]:
-        warnings.warn("Deprecated! Use cls.storage.fields_to_exclude_from_mapping instead")
-        return cls.storage.fields_to_exclude_from_mapping
-
-    @classmethod
-    def get_fields_to_exclude_from_suggestions(cls) -> Set[str]:
-        warnings.warn("Deprecated! Use cls.storage.fields_to_exclude_from_suggestions instead")
-        return cls.storage.fields_to_exclude_from_suggestions
-
-    @classmethod
-    def get_raw_mapping(cls) -> Dict[str, Optional[FieldType]]:
-        warnings.warn("Method will be deprecated soon. Use cls.storage.raw_mapping instead")
-        return cls.storage.raw_mapping
-
-    @classmethod
-    def get_full_mapping(cls):
-        warnings.warn("Method will be deprecated soon. Use cls.storage.mapping instead")
-        return cls.storage.mapping
-
-    @classmethod
     def _get_raw_mapping(cls) -> Dict[str, FieldType]:
         """
         That method allows to get mapping in raw format. It have to be reimplemented
         """
         raise NotImplementedError()
-
-    @classmethod
-    def get_field_name_to_field(cls):
-        """
-        Returns dictionary with fieldnames defined in searchset class and field instances
-        """
-        warnings.warn("Method will be deprecated soon. Use cls.storage.field_name_to_field instead")
-        return cls.storage.field_name_to_field
 
     @classmethod
     def get_query_for_field(cls, condition):
