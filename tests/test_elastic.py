@@ -50,6 +50,7 @@ class TestLuceneToDjangoParsing(TestParsing):
                     Q("term", **{"source2": "value"}) | Q("term", **{"source1": "value"}),
                     ["field_with_several_sources: value", ]
             ),
+            (Q("term", **{"source2": "value"}), ["source2: value", ]),
     ))
     def test_values_with_source(self, expected_query, raw_expressions):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
