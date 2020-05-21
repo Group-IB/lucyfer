@@ -251,6 +251,23 @@ class TestSearchHelpers(TestCase):
 
         self.assertEqual(list(), MyNewSearchSet.get_fields_values(qs=DjangoModel.objects, field_name="a", prefix=""))
 
+        class SearchSet(DjangoSearchSet):
+            field1 = DjangoCharField(sources=["source1"])
+            field2 = DjangoCharField(sources=["source2"])
+
+            @classmethod
+            def get_raw_mapping(cls):
+                return dict()
+
+            class Meta:
+                model = EmptyDjangoModel
+                fields_to_exclude_from_suggestions = ["source1"]
+
+        self.assertFalse(SearchSet.storage.field_source_to_field["source1"].show_suggestions)
+        self.assertTrue(SearchSet.storage.field_source_to_field["source2"].show_suggestions)
+        self.assertTrue(SearchSet.storage.field_source_to_field["field1"].show_suggestions)
+        self.assertTrue(SearchSet.storage.field_source_to_field["field2"].show_suggestions)
+
     def test_get_available_values(self):
         def expected_available_values():
             return ['ululu', "xxxx"]

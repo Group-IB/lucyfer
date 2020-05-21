@@ -77,13 +77,12 @@ class SearchSetStorage:
                     # we extend missed fields by all fields because after cycle we will filter it anyway
                     missed_fields.extend([source for source in field.sources])
 
-                sources_field = field.__class__(show_suggestions=field.show_suggestions,
+                source_to_field_from_user_fields_sources.update(
+                    {
+                        source: field.__class__(show_suggestions=source not in self.fields_to_exclude_from_suggestions,
                                                 get_available_values_method=field._get_available_values_method,
                                                 available_values_method_kwargs=field._available_values_method_kwargs,
                                                 use_cache_for_suggestions=field.use_cache_for_suggestions)
-                source_to_field_from_user_fields_sources.update(
-                    {
-                        source: sources_field
                         for source in field.sources
                     }
                 )
