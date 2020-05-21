@@ -50,7 +50,7 @@ class SearchSetStorage:
         """
         if not hasattr(self, 'field_source_to_field_result'):
             # first process raw mapping
-            result = {
+            source_to_field_from_raw_mapping = {
                 name: self.searchset_class._field_type_to_field_class.get(
                     field_type, self.searchset_class._default_field
                 )(show_suggestions=name not in self.fields_to_exclude_from_suggestions)
@@ -58,29 +58,45 @@ class SearchSetStorage:
                 for name, field_type in self.raw_mapping.items()
             }
 
-            # if some fields user has use in sources with use_field_class_for_sources=False
-            # and we can't find this fields in raw mapping
-            # they will be here with warning
+            # then process defined fields and its sources
+            source_to_field_from_user_fields = self.field_name_to_field.copy()
+            source_to_field_from_user_fields_sources = {}
+
+            # `missed_fields` uses for process possibly missed sources from case when defined
+            # some field in searchset like this one:
+            # x = SearchField(sources=["y"], use_field_class_for_sources=False)
+            # and when we have not found "y" in raw mapping and we have no idea what field class we need to use.
+            # it will be warning in the end of function.
             missed_fields = []
 
-            # then extend it by defined fields with sources
             for name, field in self.field_name_to_field.items():
-                result[name] = field
+                if not field.sources:
+                    continue
 
-                if field.sources:
-                    if field.use_field_class_for_sources:
-                        result.update(
-                            {
-                                field_source: field
-                                for field_source in field.sources
-                            }
-                        )
-                    else:
-                        # we extend missed fields only if current source not in result
-                        # but it will be append in result later in cycle so after cycle we have to filter it again
-                        missed_fields.extend([source for source in field.sources if source not in result])
+                if not field.use_field_class_for_sources:
+                    # we extend missed fields by all fields because after cycle we will filter it anyway
+                    missed_fields.extend([source for source in field.sources])
 
-            # now process the sources
+                sources_field = field.__class__(show_suggestions=field.show_suggestions,
+                                                get_available_values_method=field._get_available_values_method,
+                                                available_values_method_kwargs=field._available_values_method_kwargs,
+                                                use_cache_for_suggestions=field.use_cache_for_suggestions)
+                source_to_field_from_user_fields_sources.update(
+                    {
+                        source: sources_field
+                        for source in field.sources
+                    }
+                )
+
+            # now result
+            # we create an empty dict and update it by our dicts with order from low to high priority.
+            # it means if user have wrote field "A" in searchset and we have found field "A" in raw mapping
+            # priority of searchset is higher, so in result we will see users field, not field from raw mapping.
+            result = {}
+            result.update(source_to_field_from_raw_mapping)
+            result.update(source_to_field_from_user_fields_sources)
+            result.update(source_to_field_from_user_fields)
+
             missed_fields = [field for field in missed_fields if field not in result]
             if missed_fields:
                 warnings.warn(f"There is some undefined fields in {self.searchset_class}: {', '.join(missed_fields)}")

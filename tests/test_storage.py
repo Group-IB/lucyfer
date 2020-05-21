@@ -173,8 +173,7 @@ class TestStorage(TestCase):
             class Meta:
                 model = None
 
-        mapping = list(NotExcludingFieldsSearchSet.storage.mapping.keys())
-        self.assertSequenceEqual(mapping, ["a", "b", "c"])
+        self.assertSequenceEqual(sorted(NotExcludingFieldsSearchSet.storage.mapping.keys()), ["a", "b", "c"])
 
     def test_exclude_fields_in_searchset_class(self):
         class ExcludeFieldsInClassSearchSet(DjangoSearchSet):
@@ -189,8 +188,7 @@ class TestStorage(TestCase):
                 model = None
                 fields_to_exclude_from_mapping = ["b"]
 
-        mapping = list(ExcludeFieldsInClassSearchSet.storage.mapping.keys())
-        self.assertSequenceEqual(list(mapping), ["a", "c"])
+        self.assertSequenceEqual(sorted(ExcludeFieldsInClassSearchSet.storage.mapping.keys()), ["a", "c"])
 
     def test_exclude_sources_in_field(self):
         class ExcludeSourcesInFieldsSearchSet(DjangoSearchSet):
@@ -204,8 +202,7 @@ class TestStorage(TestCase):
             class Meta:
                 model = None
 
-        mapping = list(ExcludeSourcesInFieldsSearchSet.storage.mapping.keys())
-        self.assertSequenceEqual(list(mapping), ["a", "b"])
+        self.assertSequenceEqual(sorted(ExcludeSourcesInFieldsSearchSet.storage.mapping.keys()), ["a", "b"])
 
 
 class TestSearchHelpers(TestCase):
