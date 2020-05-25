@@ -60,6 +60,8 @@ class BaseSearchField(MappingMixin):
     def get_sources(self, field_name: str) -> List[str]:
         """
         Returns sources list
+        Be careful: in the default field you MUST use that method instead of self.sources usage.
+        That because you have no idea about field name you've got for query generation
         """
         return self.sources or [field_name]
 
