@@ -58,11 +58,9 @@ class DjangoSearchField(DjangoWildcardMixin, DjangoSearchFieldWithoutWildcard):
         if not value:
             return None
 
-        sources = self.get_sources(condition.name)
-
         query = Q()
 
-        for source in sources:
+        for source in self.get_sources(condition.name):
             query = query | Q(**{"{}__{}".format(source, lookup): value})
 
         return query

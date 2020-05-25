@@ -39,6 +39,12 @@ class BaseSearchField(MappingMixin):
         else:
             self.use_cache_for_suggestions = use_cache_for_suggestions
 
+    def _contribute_to_class(self, field_name):
+        """
+        in searchset metaclass we have to contribute field name to field class if it was defined by user
+        """
+        self.sources = self.sources or [field_name]
+
     def cast_value(self, value: str):
         """
         Method for value casting if it necessary (or for ex. for search replaces)

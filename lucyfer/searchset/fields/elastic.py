@@ -26,12 +26,11 @@ class ElasticSearchField(ElasticMappingMixin, BaseSearchField):
     def create_query_for_sources(self, condition):
         lookup = self.get_lookup(condition.operator)
         value = self.cast_value(condition.value)
-        sources = self.get_sources(condition.name)
 
         if lookup == self.DEFAULT_LOOKUP:
-            return self._get_query_for_term(sources=sources, lookup=lookup, value=value)
+            return self._get_query_for_term(sources=self.get_sources(condition.name), lookup=lookup, value=value)
         else:
-            return self._get_query_for_range(sources=sources, lookup=lookup, value=value)
+            return self._get_query_for_range(sources=self.get_sources(condition.name), lookup=lookup, value=value)
 
     def _get_query_for_term(self, sources: List[str], lookup: str, value: Any):
         query = None  # if set Q() as default it will be MatchAll() anytime
@@ -102,10 +101,9 @@ class ElasticBooleanField(ElasticSearchFieldWithoutWildCard):
     def create_query_for_sources(self, condition):
         lookup = self.get_lookup(condition.operator)
         value = self.cast_value(condition.value)
-        sources = self.get_sources(condition.name)
 
         if lookup == self.DEFAULT_LOOKUP:
-            return self._get_query_for_term(sources=sources, lookup=lookup, value=value)
+            return self._get_query_for_term(sources=self.get_sources(condition.name), lookup=lookup, value=value)
         return None
 
     def cast_value(self, value):

@@ -58,6 +58,9 @@ class BaseSearchSetMetaClass(type):
         field_name_to_field = mcs.get_field_name_to_field(base_field_class=searchset._field_base_class, attrs=attrs)
         mcs.validate_field_name_to_field(field_name_to_field=field_name_to_field, searchset_name=name)
 
+        for field_name, field in field_name_to_field.items():
+            field._contribute_to_class(field_name=field_name)
+
         fields_to_exclude_from_mapping = mcs.get_fields_to_exclude_from_mapping(
             searchset_fields_to_exclude_from_mapping=meta.fields_to_exclude_from_mapping or [],
             field_name_to_field=field_name_to_field,

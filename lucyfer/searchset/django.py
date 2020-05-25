@@ -56,5 +56,5 @@ class DjangoSearchSet(LuceneToDjangoParserMixin, BaseSearchSet):
         """
         sources = []
         for name, field in cls.storage.field_name_to_field.items():
-            sources.extend(field.get_sources(field_name=name))
+            sources.extend(field.sources)
         return sources

@@ -53,7 +53,7 @@ class SearchSetStorage:
             source_to_field_from_raw_mapping = {
                 name: self.searchset_class._field_type_to_field_class.get(
                     field_type, self.searchset_class._default_field
-                )(show_suggestions=name not in self.fields_to_exclude_from_suggestions)
+                )(show_suggestions=name not in self.fields_to_exclude_from_suggestions, sources=[name])
 
                 for name, field_type in self.raw_mapping.items()
             }
@@ -79,7 +79,8 @@ class SearchSetStorage:
 
                 source_to_field_from_user_fields_sources.update(
                     {
-                        source: field.__class__(show_suggestions=source not in self.fields_to_exclude_from_suggestions,
+                        source: field.__class__(sources=[source],
+                                                show_suggestions=source not in self.fields_to_exclude_from_suggestions,
                                                 get_available_values_method=field._get_available_values_method,
                                                 available_values_method_kwargs=field._available_values_method_kwargs,
                                                 use_cache_for_suggestions=field.use_cache_for_suggestions)
