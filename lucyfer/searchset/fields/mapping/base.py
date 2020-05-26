@@ -3,7 +3,7 @@ from typing import List
 
 from django.core.cache import cache
 
-from lucyfer.searchset.fields.mapping.utils import escape_quotes
+from lucyfer.searchset.fields.mapping.utils import escape_quotes, ignore_empty_values
 from lucyfer.settings import lucyfer_settings
 
 
@@ -18,7 +18,8 @@ class MappingMixin:
                    escape_quotes_in_suggestions: bool,
                    prefix: str = '',
                    cache_key: str = "DEFAULT_KEY",
-                   max_return_suggestions_count=lucyfer_settings.CACHE_MAX_VALUES_COUNT_FOR_ONE_PREFIX) -> List[str]:
+                   max_return_suggestions_count: int = lucyfer_settings.CACHE_MAX_VALUES_COUNT_FOR_ONE_PREFIX,
+                   allow_empty_values: bool = lucyfer_settings.ALLOW_EMPTY_SUGGESTIONS) -> List[str]:
         if not self.show_suggestions:
             return list()
 
@@ -28,7 +29,9 @@ class MappingMixin:
         if self._is_prefix_may_be_cached(prefix=prefix) and cache.get(key):
             return cache.get(key)
 
-        values = self._get_values(qs=qs, prefix=prefix, escape_quotes_in_suggestions=escape_quotes_in_suggestions)
+        values = self._get_values(qs=qs, prefix=prefix,
+                                  escape_quotes_in_suggestions=escape_quotes_in_suggestions,
+                                  allow_empty_values=allow_empty_values)
 
         # if None we will return ALL found values, else needed count
         if max_return_suggestions_count is not None:
@@ -52,7 +55,7 @@ class MappingMixin:
         """
         raise NotImplementedError()
 
-    def _get_values(self, qs, prefix: str, escape_quotes_in_suggestions: bool) -> List[str]:
+    def _get_values(self, qs, prefix: str, escape_quotes_in_suggestions: bool, allow_empty_values: bool) -> List[str]:
         """
         Returns all possible values (NOT SLICED)
         """
@@ -64,6 +67,9 @@ class MappingMixin:
         else:
             qs = self.prepare_qs_for_suggestions(qs=qs, prefix=prefix)
             values = self.get_suggestions_from_prepared_qs(qs=qs, prefix=prefix)
+
+        if not allow_empty_values:
+            values = ignore_empty_values(values)
 
         if escape_quotes_in_suggestions:
             values = escape_quotes(values)
