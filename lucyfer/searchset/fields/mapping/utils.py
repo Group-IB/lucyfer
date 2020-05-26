@@ -12,4 +12,4 @@ def escape_quotes(values: List[str]) -> List[str]:
 
 
 def ignore_empty_values(values: List[str]) -> List[str]:
-    return [v for v in values if v is not lucyfer_settings.EMPTY_SUGGESTIONS_VALUES]
+    return [v for v in values if v not in lucyfer_settings.EMPTY_SUGGESTIONS_VALUES]
