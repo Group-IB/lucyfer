@@ -76,6 +76,7 @@ class SearchSetStorage:
                 if not field.use_field_class_for_sources:
                     # we extend missed fields by all fields because after cycle we will filter it anyway
                     missed_fields.extend([source for source in field.sources])
+                    continue
 
                 source_to_field_from_user_fields_sources.update(
                     {
