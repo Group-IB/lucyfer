@@ -55,15 +55,21 @@ class MappingMixin:
         """
         raise NotImplementedError()
 
-    def _get_values(self, qs, prefix: str, escape_quotes_in_suggestions: bool, allow_empty_values: bool) -> List[str]:
+    def _get_values(self,
+                    qs,
+                    prefix: str,
+                    escape_quotes_in_suggestions: bool,
+                    allow_empty_values: bool,
+                    prefix: str) -> List[str]:
         """
         Returns all possible values (NOT SLICED)
         """
         method = self.get_available_values_method()
 
         if callable(method):
+            prefix_lower = prefix.lower()
             available_values = method(**self._available_values_method_kwargs)
-            values = (v for v in available_values if prefix in v)
+            values = (v for v in available_values if prefix_lower in v.lower())
         else:
             qs = self.prepare_qs_for_suggestions(qs=qs, prefix=prefix)
             values = self.get_suggestions_from_prepared_qs(qs=qs, prefix=prefix)
