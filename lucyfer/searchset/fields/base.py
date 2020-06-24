@@ -23,10 +23,15 @@ class BaseSearchField(MappingMixin):
                  available_values_method_kwargs: Optional[Dict[str, Any]] = None,
                  use_field_class_for_sources: bool = True,
                  use_cache_for_suggestions: bool = None,
+                 categories: List[Any] = None,
+                 verbose_name: str = None,
                  *args, **kwargs):
 
         sources = list() if sources is None else sources
         self.sources = list(set(sources))
+
+        self.categories = categories
+        self.verbose_name = verbose_name
 
         self.exclude_sources_from_mapping = exclude_sources_from_mapping
         self.show_suggestions = show_suggestions
