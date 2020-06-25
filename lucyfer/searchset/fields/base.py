@@ -39,6 +39,10 @@ class BaseSearchField(MappingMixin):
         else:
             self.use_cache_for_suggestions = use_cache_for_suggestions
 
+        for k, v in kwargs.items():
+            assert not k in dir(self), f'Kwarg "{k}" clashes with another class attribute'
+            setattr(self, k, v)
+
     def _contribute_to_class(self, field_name):
         """
         in searchset metaclass we have to contribute field name to field class if it was defined by user
