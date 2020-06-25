@@ -59,8 +59,7 @@ class MappingMixin:
                     qs,
                     prefix: str,
                     escape_quotes_in_suggestions: bool,
-                    allow_empty_values: bool,
-                    prefix: str) -> List[str]:
+                    allow_empty_values: bool) -> List[str]:
         """
         Returns all possible values (NOT SLICED)
         """
