@@ -1,6 +1,8 @@
 from collections import defaultdict
 from typing import List
 
+
+from elasticsearch.exceptions import RequestError
 from lucyfer.searchset.fields.mapping.base import MappingMixin
 
 
@@ -12,7 +14,10 @@ class ElasticMappingMixin(MappingMixin):
         return search
 
     def get_suggestions_from_prepared_qs(self, qs, prefix: str) -> List[str]:
-        aggs = qs.execute().to_dict().get("aggregations", defaultdict(dict))
+        try:
+            aggs = qs.execute().to_dict().get("aggregations", defaultdict(dict))
+        except RequestError:
+            return []
         result = []
         for source in self.sources:
             if aggs[source].get("buckets"):
