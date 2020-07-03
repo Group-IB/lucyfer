@@ -14,6 +14,7 @@ elastic_data_type_to_field_type = {
     "double": FieldType.FLOAT,
     "float": FieldType.FLOAT,
     "boolean": FieldType.BOOLEAN,
+    "string": FieldType.TIMESTAMP,
 }
 
 

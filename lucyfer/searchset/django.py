@@ -2,7 +2,7 @@ from typing import List, Dict
 
 from django.core.exceptions import FieldError
 from django.db.models import ForeignKey, AutoField, BooleanField, BigAutoField, BigIntegerField, FloatField, \
-    IntegerField, NullBooleanField, PositiveIntegerField, PositiveSmallIntegerField
+    IntegerField, NullBooleanField, PositiveIntegerField, PositiveSmallIntegerField, DateTimeField
 
 from lucyfer.searchset.base import BaseSearchSet
 from lucyfer.searchset.fields.django import DjangoSearchField, DjangoSearchFieldWithoutWildcard, \
@@ -22,6 +22,7 @@ django_model_field_to_field_type = {
     NullBooleanField: FieldType.NULL_BOOLEAN,
     PositiveIntegerField: FieldType.INTEGER,  # todo positive integer field
     PositiveSmallIntegerField: FieldType.INTEGER,
+    DateTimeField: FieldType.TIMESTAMP,
 }
 
 
