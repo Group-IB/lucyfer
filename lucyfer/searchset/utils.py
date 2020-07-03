@@ -8,3 +8,4 @@ class FieldType(Enum):
     INTEGER = 3
     FLOAT = 4
     NULL_BOOLEAN = 5
+    TIMESTAMP = 6
