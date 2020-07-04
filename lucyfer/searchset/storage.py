@@ -1,8 +1,9 @@
 import warnings
 from dataclasses import dataclass
-from typing import Dict, Any, Set
+from typing import Dict, Any, Set, Optional
 
 from lucyfer.searchset.fields import BaseSearchField, FieldType
+from lucyfer.settings import lucyfer_settings
 
 
 @dataclass
@@ -18,6 +19,8 @@ class SearchSetStorage:
 
     fields_to_exclude_from_mapping: Set[str]
     fields_to_exclude_from_suggestions: Set[str]
+
+    field_class_for_default_searching: Optional[BaseSearchField]
 
     _full_mapping = None
 
@@ -97,6 +100,10 @@ class SearchSetStorage:
             result.update(source_to_field_from_raw_mapping)
             result.update(source_to_field_from_user_fields_sources)
             result.update(source_to_field_from_user_fields)
+
+            # and check default searching field if presented
+            if self.field_class_for_default_searching:
+                result.update({lucyfer_settings.FIELD_NAME_FOR_DEFAULT_SEARCH: self.field_class_for_default_searching})
 
             missed_fields = [field for field in missed_fields if field not in result]
             if missed_fields:

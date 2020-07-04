@@ -119,6 +119,11 @@ class ElasticNullBooleanField(ElasticBooleanField):
     _default_get_available_values_method = _values.keys
 
 
+class ElasticQueryStringField(ElasticSearchField):
+    def get_query(self, condition):
+        return Q("query_string", query=condition.value)
+
+
 default_elastic_field_types_to_fields = {
     FieldType.BOOLEAN: ElasticBooleanField,
     FieldType.INTEGER: ElasticIntegerField,
