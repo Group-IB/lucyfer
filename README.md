@@ -52,12 +52,11 @@ Create `searchsets.py` file in your django-application and fill it:
 ```python
 from lucyfer.searchset import DjangoSearchSet
 from lucyfer.searchset.fields.django import DjangoCharField
-from lucyfer.searchset.searchhelper import DjangoSearchHelperMixin
 
 from .models import MyModel
 
 
-class MyModelSearchSet(DjangoSearchHelperMixin, DjangoSearchSet):
+class MyModelSearchSet(DjangoSearchSet):
     some_field = DjangoCharField(sources=["another_field__name"], exclude_sources_from_mapping=True)
 
     class Meta:

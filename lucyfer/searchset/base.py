@@ -16,11 +16,15 @@ class BaseMetaClass:
     fields_to_exclude_from_mapping: List[str] = None
     fields_to_exclude_from_suggestions: List[str] = None
 
+    search_fields_for_default_search: List[str] = None
+
 
 class BaseSearchSetMetaClass(type):
     def __new__(mcs, name, bases, attrs):
 
         meta = mcs.get_meta(meta=attrs.pop("Meta", None))
+        meta.search_fields_for_default_search = meta.search_fields_for_default_search or []
+
         searchset = super().__new__(mcs, name, bases, attrs)
 
         mcs.process_required_field(searchset=searchset, bases=bases)
@@ -71,11 +75,19 @@ class BaseSearchSetMetaClass(type):
             field_name_to_field=field_name_to_field,
         )
 
+        field_class_for_default_searching = None
+        if meta.search_fields_for_default_search:
+            field_class_for_default_searching = searchset._field_class_for_default_searching(
+                sources=meta.search_fields_for_default_search,
+                use_field_class_for_sources=False
+            )
+
         storage = SearchSetStorage(
             field_name_to_field=field_name_to_field,
             searchset_class=searchset,
             fields_to_exclude_from_mapping=fields_to_exclude_from_mapping,
             fields_to_exclude_from_suggestions=fields_to_exclude_from_suggestions,
+            field_class_for_default_searching=field_class_for_default_searching,
         )
 
         bases_meta_classes = [base for base in bases
@@ -139,6 +151,9 @@ class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
 
     # default field uses for creating query for fields not defined in searchset class
     _default_field = BaseSearchField
+
+    # field for default searching (without lucene-like syntax usage like `?search=ululu`)
+    _field_class_for_default_searching = BaseSearchField
 
     # provides possibility to use auto cast for boolean/integer/etc fields by field classes usage
     # that means we analyze elastic mapping data types or django models to match it to field classes
