@@ -284,11 +284,11 @@ class TestSearchHelpers(TestCase):
                 model = DjangoModel
 
         self.assertEqual(['ululu', "xxxx"], MySearchSet.get_fields_values(qs=DjangoModel.objects, field_name="a"))
-        self.assertEqual(['true', 'false'], list(MySearchSet.get_fields_values(qs=DjangoModel.objects, field_name="b")))
+        self.assertEqual(['false', 'true'], list(MySearchSet.get_fields_values(qs=DjangoModel.objects, field_name="b")))
 
     def test_escape_quotes(self):
-        not_escaped_available_a_values = ["xxx ' xxx", 'xxx " xxx']
-        escaped_available_a_values = ["xxx \\' xxx", 'xxx \\" xxx']
+        not_escaped_available_a_values = ['xxx " xxx', "xxx ' xxx"]
+        escaped_available_a_values = ['xxx \\" xxx', "xxx \\' xxx"]
 
         class MySearchSet(DjangoSearchSet):
             a = DjangoCharField(get_available_values_method=lambda *args: not_escaped_available_a_values)

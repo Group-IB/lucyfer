@@ -3,7 +3,7 @@ from typing import List
 
 from django.core.cache import cache
 
-from lucyfer.searchset.fields.mapping.utils import escape_quotes, ignore_empty_values
+from lucyfer.searchset.fields.mapping.utils import escape_quotes, ignore_empty_values, custom_sorted
 from lucyfer.settings import lucyfer_settings
 
 
@@ -19,15 +19,18 @@ class MappingMixin:
                    prefix: str = '',
                    cache_key: str = "DEFAULT_KEY",
                    max_return_suggestions_count: int = lucyfer_settings.CACHE_MAX_VALUES_COUNT_FOR_ONE_PREFIX,
-                   allow_empty_values: bool = lucyfer_settings.ALLOW_EMPTY_SUGGESTIONS) -> List[str]:
+                   allow_empty_values: bool = lucyfer_settings.ALLOW_EMPTY_SUGGESTIONS,
+                   sort_values: bool = True) -> List[str]:
         if not self.show_suggestions:
             return list()
+
+        return_sorted_if_need = lambda x: custom_sorted(x) if sort_values else x
 
         key = f"LUCYFER__{model_name}__{cache_key}__{prefix}"
 
         # possibly the values has been cached already
         if self._is_prefix_may_be_cached(prefix=prefix) and cache.get(key):
-            return cache.get(key)
+            return return_sorted_if_need(cache.get(key))
 
         values = self._get_values(qs=qs, prefix=prefix,
                                   escape_quotes_in_suggestions=escape_quotes_in_suggestions,
@@ -41,7 +44,7 @@ class MappingMixin:
         if self._is_prefix_may_be_cached(prefix=prefix):
             cache.set(key, values, lucyfer_settings.CACHE_TIME)
 
-        return values
+        return return_sorted_if_need(values)
 
     def prepare_qs_for_suggestions(self, qs, prefix: str):
         """
