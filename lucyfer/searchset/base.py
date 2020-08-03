@@ -5,6 +5,7 @@ from django.utils.decorators import classproperty
 from lucyfer.searchset.fields import BaseSearchField
 from lucyfer.searchset.storage import SearchSetStorage
 from lucyfer.searchset.utils import FieldType
+from lucyfer.settings import lucyfer_settings
 
 
 class BaseMetaClass:
@@ -166,7 +167,16 @@ class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
         return cls._meta._storage
 
     @classmethod
-    def get_fields_values(cls, qs, field_name, prefix='', cache_key="DEFAULT_KEY") -> List[str]:
+    def get_fields_values(
+            cls,
+            qs,
+            field_name,
+            prefix='',
+            cache_key="DEFAULT_KEY",
+            max_return_suggestions_count=lucyfer_settings.CACHE_MAX_VALUES_COUNT_FOR_ONE_PREFIX,
+            allow_empty_values=lucyfer_settings.ALLOW_EMPTY_SUGGESTIONS,
+            sort_values=True,
+    ) -> List[str]:
         """
         Returns search helpers for field by prefix.
 
@@ -174,15 +184,26 @@ class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
         :param field_name: field name for get values
         :param prefix: prefix for searching values
         :param cache_key: additional argument to use possibility to cache different values for different users for ex.
+        :param max_return_suggestions_count: by default is 10 but if you want more - you can change it
+        :param allow_empty_values: if False you will miss empty values
+        :params sort_values: sort option
 
         :return: list of values
         """
         if not cls._meta.show_suggestions:
             return list()
 
-        return cls.storage.field_source_to_field.get(field_name, cls._default_field()).get_values(
-            qs=qs, prefix=prefix, cache_key=cache_key, model_name=cls._meta.model.__name__,
-            escape_quotes_in_suggestions=cls._meta.escape_quotes_in_suggestions
+        field = cls.storage.field_source_to_field.get(field_name, cls._default_field())
+
+        return field.get_values(
+            qs=qs,
+            prefix=prefix,
+            cache_key=cache_key,
+            model_name=cls._meta.model.__name__,
+            escape_quotes_in_suggestions=cls._meta.escape_quotes_in_suggestions,
+            max_return_suggestions_count=max_return_suggestions_count,
+            allow_empty_values=allow_empty_values,
+            sort_values=sort_values,
         )
 
     @classmethod
