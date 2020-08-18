@@ -1,3 +1,5 @@
+import sys
+import inspect
 from typing import List, Optional, Dict, Any, Type, Set
 
 from django.utils.decorators import classproperty
@@ -159,8 +161,15 @@ class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
     # provides possibility to use auto cast for boolean/integer/etc fields by field classes usage
     # that means we analyze elastic mapping data types or django models to match it to field classes
     # TODO property
-    _field_type_to_field_class: Optional[Dict[int, _field_base_class]] = None
     _raw_type_to_field_type: Optional[Dict[Any, int]] = None
+
+    @classproperty
+    def _field_type_to_field_class(cls):
+        return {
+            obj.field_type: obj
+            for name, obj in inspect.getmembers(sys.modules[cls.fields_module])
+            if isinstance(obj, type) and issubclass(obj, BaseSearchField)
+        }
 
     @classproperty
     def storage(cls):

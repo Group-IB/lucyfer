@@ -32,7 +32,7 @@ class DjangoSearchSet(LuceneToDjangoParserMixin, BaseSearchSet):
     _default_field = DjangoSearchField
     _field_class_for_default_searching = DjangoSearchField
 
-    _field_type_to_field_class = default_django_field_types_to_fields
+    fields_module = 'lucyfer.searchset.fields.django'
     _raw_type_to_field_type = django_model_field_to_field_type
 
     @classmethod

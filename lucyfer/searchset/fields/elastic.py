@@ -72,6 +72,8 @@ class ElasticSearchFieldWithoutWildCard(ElasticSearchField):
 
 
 class ElasticIntegerField(ElasticSearchFieldWithoutWildCard):
+    field_type = FieldType.INTEGER
+
     def cast_value(self, value):
         try:
             return int(value)
@@ -80,6 +82,8 @@ class ElasticIntegerField(ElasticSearchFieldWithoutWildCard):
 
 
 class ElasticFloatField(ElasticSearchFieldWithoutWildCard):
+    field_type = FieldType.FLOAT
+
     def cast_value(self, value):
         try:
             return float(value)
@@ -88,6 +92,8 @@ class ElasticFloatField(ElasticSearchFieldWithoutWildCard):
 
 
 class ElasticBooleanField(ElasticSearchFieldWithoutWildCard):
+    field_type = FieldType.BOOLEAN
+
     DEFAULT_LOOKUP = "match"
 
     OPERATOR_TO_LOOKUP = {
@@ -115,6 +121,8 @@ class ElasticBooleanField(ElasticSearchFieldWithoutWildCard):
 
 
 class ElasticNullBooleanField(ElasticBooleanField):
+    field_type = FieldType.NULL_BOOLEAN
+
     _values = {"true": True, "false": False, "null": None}
     _default_get_available_values_method = _values.keys
 

@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Callable, Any
 from lucyparser.tree import Operator
 
 from lucyfer.searchset.fields.mapping.base import MappingMixin
+from lucyfer.searchset.utils import FieldType
 from lucyfer.settings import lucyfer_settings
 
 
@@ -14,6 +15,7 @@ class BaseSearchField(MappingMixin):
     DEFAULT_LOOKUP: str
     OPERATOR_TO_LOOKUP: Dict[Operator, str] = dict()
     _default_get_available_values_method = None
+    field_type = FieldType.UNDEFINED
 
     def __init__(self,
                  sources: Optional[List[str]] = None,

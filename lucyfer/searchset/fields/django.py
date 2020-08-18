@@ -85,6 +85,8 @@ class DjangoNumberField(DjangoSearchFieldWithoutWildcard):
 
 
 class DjangoIntegerField(DjangoNumberField):
+    field_type = FieldType.INTEGER
+
     def cast_value(self, value: str) -> int:
         try:
             return int(value)
@@ -93,6 +95,8 @@ class DjangoIntegerField(DjangoNumberField):
 
 
 class DjangoFloatField(DjangoNumberField):
+    field_type = FieldType.FLOAT
+
     def cast_value(self, value: str) -> float:
         try:
             return float(value)
@@ -101,6 +105,8 @@ class DjangoFloatField(DjangoNumberField):
 
 
 class DjangoBooleanField(DjangoSearchFieldWithoutWildcard):
+    field_type = FieldType.BOOLEAN
+
     OPERATOR_TO_LOOKUP = {
         Operator.EQ: "exact",
         Operator.NEQ: "exact",
@@ -118,6 +124,8 @@ class DjangoBooleanField(DjangoSearchFieldWithoutWildcard):
 
 
 class DjangoNullBooleanField(DjangoBooleanField):
+    field_type = FieldType.NULL_BOOLEAN
+
     _values = {"true": True, "false": False, "null": None}
     _default_get_available_values_method = _values.keys
 
