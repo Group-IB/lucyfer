@@ -71,7 +71,7 @@ class MappingMixin:
         if callable(method):
             prefix_lower = prefix.lower()
             available_values = method(**self._available_values_method_kwargs)
-            values = (v for v in available_values if prefix_lower in v.lower())
+            values = list(set((v for v in available_values if prefix_lower in v.lower())))
         else:
             qs = self.prepare_qs_for_suggestions(qs=qs, prefix=prefix)
             values = self.get_suggestions_from_prepared_qs(qs=qs, prefix=prefix)
