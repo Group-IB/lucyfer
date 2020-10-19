@@ -13,11 +13,11 @@ class UnicornSearchSet(DjangoSearchSet):
     float_field = DjangoFloatField()
     boolean_field = DjangoBooleanField()
     field_with_source = DjangoCharField(sources=["ok_it_is_a_source"])
-    field_with_several_sources = DjangoCharField(sources=["source1", "source2"])
+    field_with_several_sources = DjangoCharField(sources=["source1", "source2"], use_field_class_for_sources=True)
 
-    @classmethod
-    def get_raw_mapping(cls):
-        return dict()
+    @property
+    def raw_mapping(self):
+        return dict(source1=DjangoCharField(), source2=DjangoCharField(), ok_it_is_a_source=DjangoCharField())
 
     class Meta:
         model = DjangoModel
