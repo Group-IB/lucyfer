@@ -21,7 +21,7 @@ class BaseSearchField(MappingMixin):
                  show_suggestions: bool = True,
                  get_available_values_method: Optional[Callable[..., List[Any]]] = None,
                  available_values_method_kwargs: Optional[Dict[str, Any]] = None,
-                 use_field_class_for_sources: bool = True,
+                 use_field_class_for_sources: bool = False,
                  use_cache_for_suggestions: bool = None,
                  *args, **kwargs):
 

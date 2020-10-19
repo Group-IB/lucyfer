@@ -14,9 +14,9 @@ class UnicornSearchSet(DjangoSearchSet):
     field_with_source = DjangoCharField(sources=["ok_it_is_a_source"])
     field_with_several_sources = DjangoCharField(sources=["source1", "source2"])
 
-    @classmethod
-    def get_raw_mapping(cls):
-        return dict()
+    @property
+    def raw_mapping(self):
+        return dict(source1=DjangoCharField(), source2=DjangoCharField(), ok_it_is_a_source=DjangoCharField())
 
     class Meta:
         model = ElasticModel
@@ -104,7 +104,8 @@ class TestStorage(TestCase):
 
             @classmethod
             def _get_raw_mapping(cls):
-                return {"x": None, "y": FieldType.BOOLEAN}
+                return {"x": None, "y": FieldType.BOOLEAN, "d": FieldType.INTEGER, "tralala": FieldType.INTEGER,
+                        "c": FieldType.FLOAT, "ululu": FieldType.FLOAT}
 
             class Meta:
                 model = ElasticModel
@@ -168,7 +169,7 @@ class TestStorage(TestCase):
 
             @classmethod
             def _get_raw_mapping(cls):
-                return dict()
+                return dict(c=DjangoCharField())
 
             class Meta:
                 model = None
@@ -182,7 +183,7 @@ class TestStorage(TestCase):
 
             @classmethod
             def _get_raw_mapping(cls):
-                return dict()
+                return dict(c=DjangoFloatField())
 
             class Meta:
                 model = None
@@ -197,7 +198,7 @@ class TestStorage(TestCase):
 
             @classmethod
             def _get_raw_mapping(cls):
-                return dict()
+                return dict(c=DjangoFloatField())
 
             class Meta:
                 model = None
@@ -256,8 +257,8 @@ class TestSearchHelpers(TestCase):
             field2 = DjangoCharField(sources=["source2"])
 
             @classmethod
-            def get_raw_mapping(cls):
-                return dict()
+            def _get_raw_mapping(cls):
+                return dict(source1=FieldType.INTEGER, source2=FieldType.FLOAT)
 
             class Meta:
                 model = EmptyDjangoModel
