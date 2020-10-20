@@ -2,8 +2,7 @@ from typing import Dict
 
 from lucyfer.parser import LuceneToElasticParserMixin
 from lucyfer.searchset.base import BaseSearchSet
-from lucyfer.searchset.fields import BaseSearchField
-from lucyfer.searchset.fields.elastic import default_elastic_field_types_to_fields, ElasticSearchField, \
+from lucyfer.searchset.fields.elastic import ElasticSearchField, \
     ElasticQueryStringField
 from lucyfer.searchset.utils import FieldType
 from lucyfer.utils import LuceneSearchException

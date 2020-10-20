@@ -5,8 +5,7 @@ from django.db.models import ForeignKey, AutoField, BooleanField, BigAutoField, 
     IntegerField, NullBooleanField, PositiveIntegerField, PositiveSmallIntegerField, DateTimeField, DateField
 
 from lucyfer.searchset.base import BaseSearchSet
-from lucyfer.searchset.fields.django import DjangoSearchField, DjangoSearchFieldWithoutWildcard, \
-    default_django_field_types_to_fields
+from lucyfer.searchset.fields.django import DjangoSearchField, DjangoSearchFieldWithoutWildcard
 from lucyfer.searchset.utils import FieldType
 from lucyfer.parser import LuceneToDjangoParserMixin
 from lucyfer.utils import LuceneSearchException
