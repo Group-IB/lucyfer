@@ -1,4 +1,7 @@
+from itertools import chain
 from typing import List, Optional, Dict, Any, Type, Set
+import inspect
+import sys
 
 from django.utils.decorators import classproperty
 
@@ -159,8 +162,24 @@ class BaseSearchSet(metaclass=BaseSearchSetMetaClass):
     # provides possibility to use auto cast for boolean/integer/etc fields by field classes usage
     # that means we analyze elastic mapping data types or django models to match it to field classes
     # TODO property
-    _field_type_to_field_class: Optional[Dict[int, _field_base_class]] = None
     _raw_type_to_field_type: Optional[Dict[Any, int]] = None
+
+    @classproperty
+    def _default_fields(cls):
+        return [obj for _, obj in inspect.getmembers(sys.modules['lucyfer.searchset.fields'])
+                if isinstance(obj, type) and issubclass(obj, cls._field_base_class)]
+
+    @classproperty
+    def _declared_fields(cls):
+        return [field.__class__ for field in cls.__dict__.values()
+                if isinstance(field, cls._field_base_class)]
+
+    @classproperty
+    def _field_type_to_field_class(cls):
+        return {
+            field.field_type: field
+            for field in chain(cls._default_fields, cls._declared_fields)
+        }
 
     @classproperty
     def storage(cls):

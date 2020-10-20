@@ -3,6 +3,7 @@ from enum import Enum, unique
 
 @unique
 class FieldType(Enum):
+    UNDEFINED = 0
     BOOLEAN = 1
     STRING = 2
     INTEGER = 3
