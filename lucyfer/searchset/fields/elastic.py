@@ -20,17 +20,21 @@ class ElasticSearchField(ElasticMappingMixin, BaseSearchField):
         Operator.GT: "gt",
         Operator.LT: "lt",
         Operator.GTE: "gte",
-        Operator.LTE: "lte"
+        Operator.LTE: "lte",
+        Operator.MATCH: "regexp",
     }
 
     def create_query_for_sources(self, condition):
         lookup = self.get_lookup(condition.operator)
         value = self.cast_value(condition.value)
+        sources = self.get_sources(condition.name)
 
-        if lookup == self.DEFAULT_LOOKUP:
-            return self._get_query_for_term(sources=self.get_sources(condition.name), lookup=lookup, value=value)
+        if condition.operator in [Operator.EQ, Operator.NEQ]:
+            return self._get_query_for_term(sources=sources, lookup=lookup, value=value)
+        if condition.operator == Operator.MATCH:
+            return self._get_query_for_regex(sources=sources, lookup=lookup, value=value)
         else:
-            return self._get_query_for_range(sources=self.get_sources(condition.name), lookup=lookup, value=value)
+            return self._get_query_for_range(sources=sources, lookup=lookup, value=value)
 
     def _get_query_for_term(self, sources: List[str], lookup: str, value: Any):
         query = None  # if set Q() as default it will be MatchAll() anytime
@@ -44,13 +48,23 @@ class ElasticSearchField(ElasticMappingMixin, BaseSearchField):
                 query = query | Q(lookup, **{source: value})
         return query
 
-    def _get_query_for_range(self, sources, lookup, value):
+    def _get_query_for_range(self, sources: List[str], lookup: str, value: Any):
         query = None  # if set Q() as default it will be MatchAll() anytime
         for source in sources:
             if query is None:
                 query = Range(**{source: {lookup: value}})
             else:
                 query = query | Range(**{source: {lookup: value}})
+        return query
+
+    def _get_query_for_regex(self, sources: List[str], lookup: str, value: Any):
+        query = None  # if set Q() as default it will be MatchAll() anytime
+
+        for source in sources:
+            if query is None:
+                query = Q(lookup, **{source: value})
+            else:
+                query = query | Q(lookup, **{source: value})
         return query
 
     def _get_wildcard_or_lookup(self, value, lookup):
@@ -117,8 +131,17 @@ class ElasticNullBooleanField(ElasticBooleanField):
 
 
 class ElasticQueryStringField(ElasticSearchField):
+    DEFAULT_LOOKUP = "query_string"
+
+    OPERATOR_TO_LOOKUP = {
+        Operator.EQ: "query_string",
+        Operator.NEQ: "query_string",
+    }
+
     def get_query(self, condition):
-        return Q("query_string", query=condition.value)
+        value = self.cast_value(condition.value)
+        lookup = self.get_lookup(condition.operator)
+        return Q(lookup, query=value)
 
 
 default_elastic_field_types_to_fields = {

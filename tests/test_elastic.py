@@ -107,3 +107,12 @@ class TestLuceneToDjangoParsing(TestParsing):
     ))
     def test_negate_values(self, expected_query, raw_expressions):
         self._check_rules(rules=raw_expressions, expected_query=expected_query)
+
+    @parameterized.expand((
+            (
+                    Q("regexp", **{"source2": "s.*"}) | Q("regexp", **{"source1": "s.*"}),
+                    ["field_with_several_sources ~ 's.*'"]
+            ),
+    ))
+    def test_regexp_query(self, expected_query, raw_expressions):
+        self._check_rules(rules=raw_expressions, expected_query=expected_query)

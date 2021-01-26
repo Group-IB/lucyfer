@@ -70,6 +70,7 @@ class DjangoCharField(DjangoSearchField):
     OPERATOR_TO_LOOKUP = {
         Operator.EQ: "icontains",
         Operator.NEQ: "iexact",
+        Operator.MATCH: "regex",
     }
 
 
