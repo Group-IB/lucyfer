@@ -1,17 +1,13 @@
 from lucyparser import parse
 from lucyparser.exceptions import BaseLucyException
 from lucyparser.tree import BaseNode
-from lucyparser.parsing import Parser as LucyParser
 
 from lucyfer.utils import LuceneSearchException
 
 
-class CyrillicParser(LucyParser):
-    # with redefined `permitted_name_value_char` it's only used for error messages
-    value_chars = "letter, digit, or one of -.*_?!;,:@|"
-
-    def permitted_name_value_char(self, c: str):
-        return c.isalnum() or c in "-.*_?!;,:@|"
+__all__ = [
+    'BaseLuceneParserMixin'
+]
 
 
 class BaseLuceneParserMixin:
@@ -45,7 +41,14 @@ class BaseLuceneParserMixin:
 
     @classmethod
     def _get_tree_from_raw_expression(cls, raw_expression):
+        """
+        Parses raw search string to lucy tree
+        If you want to use some literals except of `string.ascii_letters + string.digits + "-.*_?!;,:@|"`
+        you have to:
+        1. override lucyparser's Parser class and define your own value_chars in it
+        2. override that func and force your Parser class to parse func
+        """
         try:
-            return parse(string=raw_expression, parser_class=CyrillicParser)
+            return parse(string=raw_expression)
         except BaseLucyException:
             raise LuceneSearchException()
