@@ -1,9 +1,11 @@
-from rest_framework_elasticsearch.es_filters import BaseEsFilterBackend
-
 from lucyfer.utils import LuceneSearchException
 
+class ElasticLuceneSearchFilterMixin:
+    def get_schema_fields(self, view):
+        assert coreapi is not None, 'coreapi must be installed to use `get_schema_fields()`'
+        assert coreschema is not None, 'coreschema must be installed to use `get_schema_fields()`'
+        return []
 
-class ElasticLuceneSearchFilterMixin(BaseEsFilterBackend):
     def filter_search(self, request, search, view):
         search_terms = self.get_base_search_terms(request)
 
