@@ -11,7 +11,7 @@ Only for Django with DRF:
 pip install lucyfer
 ```
 
-For Django with DRF and Elasticsearch-dsl with DRF:
+For Django with DRF and Elasticsearch-dsl:
 
 ```
 pip install lucyfer[full]
