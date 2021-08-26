@@ -1,2 +1,1 @@
-django-rest-elasticsearch~=0.4.1
 elasticsearch-dsl~=6.4.0
