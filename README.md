@@ -1,5 +1,5 @@
 # Lucene way search in django
-#### ("Django" AND "DRF") OR ("Elasticserach-DSL" AND "Django Rest Elasticsearch")
+#### ("Django" AND "DRF") OR "Elasticserach-DSL"
 
 _________________
 
@@ -11,7 +11,7 @@ Only for Django with DRF:
 pip install lucyfer
 ```
 
-For Django with DRF and Elasticsearch-dsl with DRF:
+For Django with DRF and Elasticsearch-dsl:
 
 ```
 pip install lucyfer[full]
@@ -24,7 +24,6 @@ pip install lucyfer[full]
 | lucyparser                | +       | +     |
 | Django                    | +       | +     |
 | djangorestframework       | +       | +     |
-| django-rest-elasticsearch | -       | +     |
 | elasticsearch-dsl         | -       | +     |
 
 
